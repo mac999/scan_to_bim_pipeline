@@ -28,3 +28,7 @@ MIT license
 
 # developed by 
 KICT, IUPUI / Pudue / UNF univesity
+
+# reference
+Kang, T., Patil, S., Kang, K., Koo, D. and Kim, J., 2020. Rule-based scan-to-BIM mapping pipeline in the plumbing system. Applied Sciences, 10(21), p.7422. https://www.mdpi.com/2076-3417/10/21/7422
+
