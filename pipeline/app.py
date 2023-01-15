@@ -1,14 +1,9 @@
-import sys
-import os
-from yaml import parse
-import pipeline
-import argparse, readline
-import config
-import json
-import shutil
-import re
+# title: application for scan to BIM
+# created date: 2022.6, taewook kang, laputa99999@gmail.com
 
-parser = args = None
+import sys, os, re, argparse, readline, json, glob, shutil
+from yaml import parse
+import pipeline, config
 
 # define app
 class application:
@@ -19,33 +14,37 @@ class application:
         self.config = config.config()
         self.pipes = list()
 
-    def load(self, pipeline_name = "*"):
-        self.config.load(args.config) # '/home/ktw/Projects/pcd_pl/pipeline/config.json'
-        self.config.set_pipeline_fname(args.pipeline) # '/home/ktw/Projects/pcd_pl/pipeline/scan_to_bim_test.json'
-        if args.input != None:
-            self.config.set_input_path(args.input)
-        if args.output != None:
-            self.config.set_output_path(args.output)
-            fname = os.path.basename(args.pipeline)
-            shutil.copyfile(args.pipeline, args.output + fname)
+    def load(self, args, json_pipeline, pipeline_stage, input_file, output_file):
+        if args == None:
+            return 
 
-        if len(sys.argv) >= 2:
-            self.config.set_pipeline_fname(sys.argv[1])
+        self.config.load(args.config) # '/home/ktw/Projects/pcd_pl/pipeline/config.json'
+        self.config.set_pipeline_fname(json_pipeline) # '/home/ktw/Projects/pcd_pl/pipeline/scan_to_bim_test.json'
+        if input_file != None:
+            self.config.set_input_path(input_file)
+        if output_file != None:
+            self.config.set_output_path(output_file)
+            fname = os.path.basename(json_pipeline)
+            try:
+                os.makedirs(output_file)
+            except Exception as e:
+                pass
+            shutil.copyfile(json_pipeline, output_file + fname)
 
         print('load pipeline')
-        with open(args.pipeline, 'r') as f:
+        with open(json_pipeline, 'r') as f:
             self.pipeline_config = json.load(f)
-            print(self.pipeline_config)
+            # print(self.pipeline_config)
                 
             for p in self.pipeline_config:
-                print(p)
+                # print(p)
 
-                find = re.search(p, pipeline_name) 
+                find = re.search(p, pipeline_stage) 
                 if find == None:
                     continue
 
                 pipe = pipeline.pipeline(p, self.config)
-                pipe.load(args.pipeline)
+                pipe.load(json_pipeline)
                 self.pipes.append(pipe)
 
     def run(self):
@@ -54,29 +53,46 @@ class application:
 
         print('exit pipeline...')
 
+def process_multiple_pipeline(args):
+    print('Begin processing multiple files...\n')
+
+    files = glob.glob(args.input_path)
+    print(files)
+
+    for file in files:
+        path = os.path.dirname(file)
+        name, ext = os.path.splitext(os.path.basename(file))
+        print(f'\n\n* Processing pipline of {name}...\n')
+
+        if args.pipeline != None and args.pipeline != "":
+            json_pipeline = args.pipeline
+        else:
+            json_pipeline = path + '/' + name + '_' + args.pipeline_tag
+        output = args.output_path + name + '/'
+
+        app = application("pcd_pipeline_app")
+        app.load(args, json_pipeline, args.stage, file, output)
+        app.run()
+
+    print('End processing.')
+
+
 def main():
-    # load argument
-    try:
-        global parse, args
-        
+    # load argument 
+    try:        
         parser = argparse.ArgumentParser()
-        parser.add_argument('--config', type=str, required=True)
-        parser.add_argument('--pipeline', type=str, required=True)
-        parser.add_argument('--input', type=str, required=True)
-        parser.add_argument('--output', type=str, required=True)
-        args = parser.parse_args(["--config", "/home/ktw/Projects/pcd_pl/pipeline/config.json", "--pipeline", "/home/ktw/Projects/pcd_pl/pipeline/scan_to_bim_test.json", "--input", "/home/ktw/Projects/pcd_pl/input/PUNK*.las", "--output", "/home/ktw/Projects/pcd_pl/output/"])
+        parser.add_argument('--config', type=str, default="/home/ktw/projects/pcd_pl/pipeline/config.json", required=False)
+        parser.add_argument('--pipeline', type=str, default='', required=False)
+        parser.add_argument('--pipeline_tag', type=str, default='scan_to_bim.json', required=False)
+        parser.add_argument('--stage', type=str, default='pipeline.outdoor_ground', required=False)
+        parser.add_argument('--input_path', type=str, default='/home/ktw/projects/pcd_pl/input/*.las', required=False)
+        parser.add_argument('--output_path', type=str, default='/home/ktw/projects/pcd_pl/output/', required=False)
+        args = parser.parse_args() # ["--config", "/home/ktw/projects/pcd_pl/pipeline/config.json", "--pipeline", json_pipeline, "--input", file, "--output", output])
 
-        # args.config = '/home/ktw/Projects/pcd_pl/pipeline/config.json'
-        # args.pipeline = '/home/ktw/Projects/pcd_pl/pipeline/scan_to_bim_test.json'
-        # args.input = '/home/ktw/Projects/pcd_pl/data/MapData_3_15_indoor_c.pcd'
+        process_multiple_pipeline(args)    
     except Exception as e:
-        print(e.__cause__)
+        print(e)
         pass
-
-    # run app
-    app = application("pcd_pipeline_app")
-    app.load("pipeline.outdoor_ground")
-    app.run()
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,8 @@
 {
     "app": "pcd_pipeline",
-    "root_path": "/home/ktw/Projects/pcd_pl/pipeline/",
-    "bin_path": "/home/ktw/Projects/pcd_pl/build/bin/",
-    "lib_path": "/home/ktw/Projects/pcd_pl/lib/",
-    "data_path": "/home/ktw/Projects/pcd_pl/data/"
+    "root_path": "/home/ktw/projects/pcd_pl/pipeline/",
+    "bin_path": "/home/ktw/projects/pcd_pl/build/bin/",
+    "lib_path": "/home/ktw/projects/pcd_pl/lib/",
+    "data_path": "/home/ktw/projects/pcd_pl/data/",
+    "debug_gui": true
 }

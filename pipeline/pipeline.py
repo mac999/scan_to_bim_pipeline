@@ -1,12 +1,9 @@
-# Title: Scan to BIM pipieline
-# Programmer: Kang Taewook
-# Date: 2022.6.1
-import sys
-import json
-import subprocess
+# title: pipeline for scan to BIM
+# created date: 2022.6, taewook kang, laputa99999@gmail.com
+# revised date: 2023.1.2, taewook kang, major update about new stage class dynamically. 
+
+import sys, re, json, glob, subprocess
 import config
-import glob
-import re
 
 conf = config.config()
 
@@ -15,6 +12,7 @@ class pipeline_stage:
     pipe = None
     stage_config = None
     active_run = True
+
     def __init__(self, pipe_obj, name):
         self.name = name
         self.pipe = pipe_obj
@@ -34,7 +32,7 @@ class pipeline_stage:
         if model == None:
             model = ""
 
-        program_path = conf.get_bin_path() + self.name
+        program_path = conf.bin_path + self.name
         output_fname_tag = output + self.name
 
         return program_path, input, output, output_fname_tag, filter_type, model
@@ -67,7 +65,7 @@ class pipeline_stage:
             return output_fname_tag
 
         app_conf = self.pipe.get_app_config()
-        root_path = app_conf.get_root()
+        root_path = app_conf.root_path
 
         cmd = ["python", program_path + ".py", "--input", input, "--output", output_fname_tag]
 
@@ -85,109 +83,6 @@ class pipeline_stage:
 
         return output_fname_tag         
 
-# indoor
-class pcd_to_seg_stage(pipeline_stage): # get segments
-    def run(self):
-        program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
-        if self.active_run == False:
-            return output_fname_tag + "*.pcd"
-        
-        docker = self.stage_config.get('docker')
-        iter = self.stage_config.get('iteration')
-        thresh = self.stage_config.get('threshold')
-        projection = self.stage_config.get('projection')    # projection on model
-        min_points_ratio = self.stage_config.get('min_points_ratio')
-
-        files = glob.glob(input + "*.pcd")
-        print(files)
-
-        for f in files: 
-            if docker != None and len(docker):
-                image_name = docker       # docker image name
-                cmd = ['docker', image_name, f, output_fname_tag, "-mit", iter, "-th", thresh, "-prj", projection, "-mpr", min_points_ratio, "-ft", "pcd"]
-            else:
-                cmd = [program_path, f, output_fname_tag, "-mit", iter, "-th", thresh, "-prj", projection, "-mpr", min_points_ratio, "-ft", "pcd"]
-            ret = subprocess.call(cmd)
-        print(ret)
-
-        return output_fname_tag + "*.pcd"
-
-class pcd_to_clean_stage(pipeline_stage):   # clean pcd
-    def run(self):
-        program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
-        if self.active_run == False:
-            return output_fname_tag + "*.pcd"
-
-        voxel_down_size = self.stage_config.get('voxel_down_size')
-        # stat_neighbors = self.stage_config['stat_neighbors']
-        # stat_std_ratio = self.stage_config['stat_std_ratio']
-        nb_radius_points = self.stage_config.get('nb_radius_points')
-        nb_radius = self.stage_config.get('nb_radius')
-
-        # cmd = ["python", program_path + ".py", "--voxel_down_size", voxel_down_size, "--stat_neighbors", stat_neighbors, "--stat_std_ratio", stat_std_ratio, "--input", input, "--output", output_fname_tag]
-        cmd = ["python", program_path + ".py", "--voxel_down_size", voxel_down_size, "--nb_radius_points", nb_radius_points, "--nb_radius", nb_radius, "--input", input, "--output", output_fname_tag]
-        ret = subprocess.call(cmd)
-        print(ret)
-
-        return output_fname_tag + "*.pcd"
-
-class seg_to_geo_stage(pipeline_stage): # get concave alpha shape. option.
-    def run(self):
-        program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
-        if self.active_run == False:
-            return output_fname_tag
-        model = self.stage_config.get('model')
-        alpha = self.stage_config.get('alpha')
-
-        cmd = [program_path, input, output_fname_tag, "-ht", model, "-alpha", alpha]
-        ret = subprocess.call(cmd) # ["../build/bin/seg_to_geo", "/home/ktw/Projects/pcd_pl/build/bin/cloud_planner_hull_", "/home/ktw/Projects/pcd_pl/build/bin/indoor/", "-ft", "json", "-alpha", "0.1"])
-        print(ret)
-
-        return output_fname_tag
-
-class geo_to_obj_indoor_stage(pipeline_stage): # get object (wall, floor etc)
-    def run(self):
-        program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
-        if self.active_run == False:
-            return output_fname_tag
-        wall = self.stage_config.get('wall')
-        floor = self.stage_config.get('floor')            
-        wall_min_angle = wall.get('min_angle')
-        wall_max_angle = wall.get('max_angle')
-        wall_height = wall.get('height')
-        floor_max_height = floor.get('max_height')
-
-        cmd = ["python", program_path + ".py", "--input", input, "--output", output_fname_tag, "--wall_min_angle", wall_min_angle, "--wall_max_angle", wall_max_angle, "--wall_height", wall_height, "--floor_max_height", floor_max_height]
-        ret = subprocess.call(cmd) # ["python", "/home/ktw/Projects/pcd_pl/pcd_geo_obj/geo_to_obj.py"])
-        print(ret)
-
-        return output_fname_tag 
-
-class obj_to_bim_stage(pipeline_stage): # get semantic object
-    def run(self):
-        return pipeline_stage.run(self)
-
-# outdoor
-class pcd_to_outdoor_classification_stage(pipeline_stage):
-    def run(self):
-        return pipeline_stage.run(self)
-
-class pcd_to_dtm_stage(pipeline_stage): 
-    def run(self):
-        return pipeline_stage.run(self)
-
-class dtm_to_geo_stage(pipeline_stage): 
-    def run(self):
-        return pipeline_stage.run(self)
-
-class geo_to_obj_outdoor_stage(pipeline_stage): 
-    def run(self):
-        return pipeline_stage.run(self)
-
-class obj_to_bim_outdoor_stage(pipeline_stage): 
-    def run(self):
-        return pipeline_stage.run(self)
-
 # pipeline
 class pipeline:
     app_config = None
@@ -201,10 +96,33 @@ class pipeline:
         self.name = name
         self.app_config = app_conf
 
-    def create_stage(self, type):   # factory design pattern. create instance of class, dynamically
-        name = type + '_stage'
-        cls = globals()[name]
-        obj = cls(self, type)
+    def create_dynamic_pipeline_stage(self, class_name, type_name):
+        try:
+            def run(self):
+                return pipeline_stage.run(self)
+
+            dynamic_stage_class_dict = {
+                "run": run
+            }
+
+            stage_class = type(class_name, (pipeline_stage, ), dynamic_stage_class_dict)
+            obj = stage_class(self, type_name)
+            return obj
+        except Exception as e:
+            print(e)
+            pass
+        return None
+
+    def create_stage(self, type_name):   # factory design pattern. create instance of class, dynamically
+        stage_name = type_name + '_stage'
+        try:
+            import pipeline_default_stage
+
+            cls = globals()[stage_name]
+            obj = cls(self, type_name)
+        except Exception as e:
+            print(e)
+            obj = self.create_dynamic_pipeline_stage(stage_name, type_name)
         return obj
 
     def set_active_run(self, flag):
@@ -217,7 +135,7 @@ class pipeline:
         print('load pipeline')
         with open(fname, 'r') as f:
             self.pipeline_config = json.load(f)
-            print(self.pipeline_config)
+            # print(self.pipeline_config)
 
         for p in self.pipeline_config:
             find = re.search(p, self.name) 
@@ -254,20 +172,21 @@ class pipeline:
 
     def run(self):
         print('pipeline')
-        print(conf.get_root())
-        print(conf.get_bin_path())
-        print(conf.get_data_path())
+        print(conf.root_path)
+        print(conf.bin_path)
+        print(conf.data_path)
         print(conf.get_output_path())
+
         if self.pipes == None or len(self.pipes) == 0:
             return
 
         if self.active_run == False:
             return
 
-        # self.pipes[0].set_active_run(False)
+        # self.pipes[0].set_active_run(False)   # for test.
         # self.pipes[1].set_active_run(False)
-        self.pipes[2].set_active_run(False)
-        self.pipes[3].set_active_run(False)
+        # self.pipes[2].set_active_run(False)
+        # self.pipes[3].set_active_run(False)
 
         input = conf.get_input_path()
         for idx, p in enumerate(self.pipes):
