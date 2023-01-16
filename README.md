@@ -9,7 +9,7 @@ Scan to BIM project has purpose like below.
 3. Extraction geometry information from classification.
 4. Binding BIM object with geometry information and property set.
 
-<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept1.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept2.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/ifc_building_facade.PNG"/>
+<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept1.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept2.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/ifc_building_facade.jpg"/>
 
 # version history
 0.1: scan to bim framework released.
