@@ -32,7 +32,7 @@ class pipeline_stage:
         if model == None:
             model = ""
 
-        program_path = conf.bin_path + self.name
+        program_path = conf.bin_path + self.name + "/" + self.name
         output_fname_tag = output + self.name
 
         return program_path, input, output, output_fname_tag, filter_type, model
@@ -60,26 +60,30 @@ class pipeline_stage:
         return self.active_run
 
     def run(self):
-        program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
-        if self.active_run == False:
-            return output_fname_tag
+        try:
+            program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
+            if self.active_run == False:
+                return output_fname_tag
 
-        app_conf = self.pipe.get_app_config()
-        root_path = app_conf.root_path
+            app_conf = self.pipe.get_app_config()
+            root_path = app_conf.root_path
 
-        cmd = ["python", program_path + ".py", "--input", input, "--output", output_fname_tag]
+            cmd = ["python", program_path + ".py", "--input", input, "--output", output_fname_tag]
 
-        for param in self.stage_config:
-            if param == "type" or param == "module" or param == "input" or param == "output":
-                continue
-            value = str(self.stage_config[param])
-            if param == "pdal_pipeline":
-                value = root_path + value
-            cmd.append("--" + param)
-            cmd.append(value)
+            for param in self.stage_config:
+                if param == "type" or param == "module" or param == "input" or param == "output":
+                    continue
+                value = str(self.stage_config[param])
+                if param == "pdal_pipeline":
+                    value = root_path + value
+                cmd.append("--" + param)
+                cmd.append(value)
 
-        ret = subprocess.call(cmd) 
-        print(ret)
+            ret = subprocess.call(cmd) 
+            print(ret)
+
+        except Exception as e:
+            print(e)
 
         return output_fname_tag         
 

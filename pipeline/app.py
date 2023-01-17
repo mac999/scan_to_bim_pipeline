@@ -39,7 +39,7 @@ class application:
             for p in self.pipeline_config:
                 # print(p)
 
-                find = re.search(p, pipeline_stage) 
+                find = re.search(pipeline_stage, p) 
                 if find == None:
                     continue
 
@@ -84,7 +84,7 @@ def main():
         parser.add_argument('--config', type=str, default="/home/ktw/projects/pcd_pl/pipeline/config.json", required=False)
         parser.add_argument('--pipeline', type=str, default='', required=False)
         parser.add_argument('--pipeline_tag', type=str, default='scan_to_bim.json', required=False)
-        parser.add_argument('--stage', type=str, default='pipeline.outdoor_ground', required=False)
+        parser.add_argument('--stage', type=str, default='.*', required=False)
         parser.add_argument('--input_path', type=str, default='/home/ktw/projects/pcd_pl/input/*.las', required=False)
         parser.add_argument('--output_path', type=str, default='/home/ktw/projects/pcd_pl/output/', required=False)
         args = parser.parse_args() # ["--config", "/home/ktw/projects/pcd_pl/pipeline/config.json", "--pipeline", json_pipeline, "--input", file, "--output", output])
