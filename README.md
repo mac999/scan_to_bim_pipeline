@@ -24,6 +24,13 @@ This pipeline used geometry computation algorithms, deep learning etc.
 4. install cuda, tensorflow, pytorch
 5. pip -r install requirements.txt
 
+In addition, if you use PCL, install PCL library by using CMake like below. 
+1. compile and install PCL (https://github.com/PointCloudLibrary/pcl)
+2. cd scan_to_bim_pipeline
+3. mkdir build
+4. cmake ..
+5. make
+
 # license
 MIT license
 
