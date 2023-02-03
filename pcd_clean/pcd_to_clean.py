@@ -3,13 +3,7 @@
 # date: 2022.5.
 # desc:  
 
-import os
-import sys
-sys.path.append("/home/ktw/Projects/pcd_pl/lib")    # TBD. set path from config.json
-
-import json
-import glob
-import util
+import os, sys, json, glob
 import trimesh
 import open3d as o3d
 import argparse, readline
@@ -19,6 +13,9 @@ import matplotlib.pyplot as plt
 from telnetlib import theNULL
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
+sys.path.append(lib_path)    
+import scan_to_bim_lib
 
 def importJson(fname): 
     data = []
@@ -48,7 +45,7 @@ def remove_outlier(fname, args):
     if args.voxel_down_size != None and args.voxel_down_size > 0.0:
         cl = pcd.voxel_down_sample(voxel_size = args.voxel_down_size)
 
-    if args.uniform_down_sample != None:
+    if args.uniform_down_sample != None and args.uniform_down_sample > 0:
         cl = cl.uniform_down_sample(every_k_points = args.uniform_down_sample)
 
     if args.stat_neighbors != None and args.stat_std_ratio != None:
@@ -76,15 +73,19 @@ def main():
     # args = parser.parse_args(["--nb_neighbors", "50", "--nb_std_ratio", "1.0", "--input", "/home/ktw/Projects/pcd_pl/output/pcd_to_seg", "--output", "/home/ktw/Projects/pcd_pl/output/seg_to_seg"])
     args = parser.parse_args() # ["--voxel_down_size", "0.02", "--nb_radius_points", "100", "--nb_radius", "0.2", "--input", "/home/ktw/Projects/pcd_pl/output/pcd_to_seg*.pcd", "--output", "/home/ktw/Projects/pcd_pl/output/pcd_to_clean"])
 
-    files = glob.glob(args.input)
-    print("input files = ", files)
+    try:
+        files = glob.glob(args.input + "*")
+        print("input files = ", files)
 
-    for index, infile in enumerate(files): 
-        outfilename = util.get_pcd_index_filepath(args.output, infile)
+        for index, infile in enumerate(files): 
+            outfilename = scan_to_bim_lib.get_pcd_index_filepath(args.output, infile)
 
-        print("cleaning ", infile)
-        pcd = remove_outlier(infile, args)
-        o3d.io.write_point_cloud(outfilename, pcd)
+            print("cleaning ", infile)
+            pcd = remove_outlier(infile, args)
+            o3d.io.write_point_cloud(outfilename, pcd)
+            
+    except Exception as e:
+        print(e)
 
 if __name__ == '__main__':
     main()
