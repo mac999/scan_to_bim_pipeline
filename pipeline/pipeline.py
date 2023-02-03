@@ -1,8 +1,9 @@
 # title: pipeline for scan to BIM
 # created date: 2022.6, taewook kang, laputa99999@gmail.com
 # revised date: 2023.1.2, taewook kang, major update about new stage class dynamically. 
+# revised date: 2023.1.30, taewook kang, update for  
 
-import sys, re, json, glob, subprocess
+import os, sys, re, json, glob, subprocess
 import config
 
 conf = config.config()
@@ -18,24 +19,30 @@ class pipeline_stage:
         self.pipe = pipe_obj
 
     def get_stage_config_params(self):
-        input = output = filter_type = model = ""
+        input = output = ""
 
         if self.stage_config == None:
-            return input, output, filter_type, model
+            return None
 
         input = self.stage_config.get('input')
         output = self.stage_config.get('output')
         filter_type = self.stage_config.get('type')
         if input == None or output == None or filter_type == None:
-            return input, output, filter_type, model
-        model = self.stage_config.get('model')
-        if model == None:
-            model = ""
+            return None
 
+        cmds = []
         program_path = conf.bin_path + self.name + "/" + self.name
+        if os.path.isfile(program_path + ".py"):
+            cmds.append('python')
+            program_path = program_path + ".py"
+        else: 
+            program_path = conf.bin_path + "bin/" + self.name
+            if os.path.isfile(program_path) == False:
+                return None
+
         output_fname_tag = output + self.name
 
-        return program_path, input, output, output_fname_tag, filter_type, model
+        return cmds, program_path, input, output, output_fname_tag
 
     def init(self, input_path = None):
         print(self.name)
@@ -61,25 +68,32 @@ class pipeline_stage:
 
     def run(self):
         try:
-            program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
+            cmds, program_path, input, output, output_fname_tag = self.get_stage_config_params()
+            if program_path == None:
+                return ""
             if self.active_run == False:
                 return output_fname_tag
 
             app_conf = self.pipe.get_app_config()
             root_path = app_conf.root_path
 
-            cmd = ["python", program_path + ".py", "--input", input, "--output", output_fname_tag]
+            exec_cmd = cmds
+            exec_cmd.append(program_path)
+            exec_cmd.append("--input")
+            exec_cmd.append(input)
+            exec_cmd.append("--output")
+            exec_cmd.append(output_fname_tag)
 
             for param in self.stage_config:
-                if param == "type" or param == "module" or param == "input" or param == "output":
+                if param == "type" or param == "input" or param == "output":
                     continue
                 value = str(self.stage_config[param])
                 if param == "pdal_pipeline":
                     value = root_path + value
-                cmd.append("--" + param)
-                cmd.append(value)
+                exec_cmd.append("--" + param)
+                exec_cmd.append(value)
 
-            ret = subprocess.call(cmd) 
+            ret = subprocess.call(exec_cmd) 
             print(ret)
 
         except Exception as e:
@@ -122,7 +136,7 @@ class pipeline:
         try:
             import pipeline_default_stage
 
-            cls = globals()[stage_name]
+            cls = getattr(pipeline_default_stage, stage_name)   # globals()[stage_name]
             obj = cls(self, type_name)
         except Exception as e:
             print(e)

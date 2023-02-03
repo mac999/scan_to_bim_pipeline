@@ -1,6 +1,7 @@
 # title: pipeline stage for scan to BIM
 # created date: 2022.6, taewook kang, laputa99999@gmail.com
 # revised date: 2023.1.2, taewook kang, major update about new stage class dynamically. 
+# revised date: 2023.1.30, taewook kang, update for binary program run. 
 
 import sys, re, json, glob, subprocess
 import config
@@ -9,9 +10,9 @@ from pipeline import pipeline_stage
 conf = config.config()
 
 # system (default) pipeline stage for indoor
-class pcd_to_seg_stage(pipeline_stage): # get segments
+''' class pcd_to_seg_stage(pipeline_stage): # get segments
     def run(self):
-        program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
+        program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()  # TBD. wrong program_path 
         if self.active_run == False:
             return output_fname_tag + "*.pcd"
         
@@ -21,7 +22,8 @@ class pcd_to_seg_stage(pipeline_stage): # get segments
         projection = self.stage_config.get('projection')    # projection on model
         min_points_ratio = self.stage_config.get('min_points_ratio')
 
-        files = glob.glob(input + "*.pcd")
+        # files = glob.glob(input + "*.pcd")
+        files = glob.glob(input)
         print(files)
 
         for f in files: 
@@ -34,7 +36,8 @@ class pcd_to_seg_stage(pipeline_stage): # get segments
         print(ret)
 
         return output_fname_tag + "*.pcd"
-
+'''
+'''
 class pcd_to_clean_stage(pipeline_stage):   # clean pcd
     def run(self):
         program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
@@ -53,7 +56,8 @@ class pcd_to_clean_stage(pipeline_stage):   # clean pcd
         print(ret)
 
         return output_fname_tag + "*.pcd"
-
+'''
+'''
 class seg_to_geo_stage(pipeline_stage): # get concave alpha shape. option.
     def run(self):
         program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
@@ -67,7 +71,8 @@ class seg_to_geo_stage(pipeline_stage): # get concave alpha shape. option.
         print(ret)
 
         return output_fname_tag
-
+'''
+'''
 class geo_to_obj_indoor_stage(pipeline_stage): # get object (wall, floor etc)
     def run(self):
         program_path, input, output, output_fname_tag, filter_type, model = self.get_stage_config_params()
@@ -85,3 +90,4 @@ class geo_to_obj_indoor_stage(pipeline_stage): # get object (wall, floor etc)
         print(ret)
 
         return output_fname_tag 
+'''
