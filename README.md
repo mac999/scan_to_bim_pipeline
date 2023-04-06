@@ -61,7 +61,33 @@ If there are depandency errors in requirements.txt, use requirements_simple.txt.
 
 # run
 design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
-TBD</br>
+{
+    "pipeline.indoor_obb_extraction": [
+        {
+            "type": "data_to_format",
+            "output_type": ".pcd"
+        },
+        {
+            "type": "pcd_to_seg",
+            "iteration": "1000", 
+            "threshold": "0.1",
+            "projection": "true",
+            "remove_overlap_distance": "0.10",
+            "min_points_ratio": "0.2"
+        },
+        {
+            "type": "pcd_to_clean",
+            "voxel_down_size": "0.0",
+            "nb_radius_points": "50",
+            "nb_radius": "0.1"
+        },
+        {
+            "type":"seg_to_geo",
+            "alpha": "0.15"
+        }
+    ]
+}
+
 </br>
 cd pipeline</br>
 python app.py</br>
