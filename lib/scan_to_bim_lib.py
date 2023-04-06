@@ -7,7 +7,6 @@ import geopandas as gpd
 import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
-from osgeo import gdal, osr
 from shapely.geometry import Polygon
 from sys import base_exec_prefix
 from sklearn.decomposition import PCA # as RandomizedPCA
@@ -265,61 +264,63 @@ def intersect_plane(p1, p2):
 
 # https://github.com/stevenellisd/gtiff2png/blob/master/gtiff2png.py
 def conv_geotiff_png_for_WGS84_googlemap(inputfile, outputfile):
-    inputfilename = inputfile
-    basefilename = outputfile
-    textoutput = open(basefilename+".latlng", "w")
-    if textoutput == None:
-        return
+  inputfilename = inputfile
+  basefilename = outputfile
+  textoutput = open(basefilename+".latlng", "w")
+  if textoutput == None:
+      return
 
-    ds = gdal.Open(inputfilename)
-    if ds == None:
-        return
+  from osgeo import gdal, osr
 
-    old_cs = osr.SpatialReference()
-    old_cs.ImportFromWkt(ds.GetProjectionRef())
+  ds = gdal.Open(inputfilename)
+  if ds == None:
+      return
 
-    # create the new coordinate system, wgs84 AKA latitude/longitude which Google Maps requires
-    wgs84_wkt = """
-    GEOGCS["WGS 84",
-        DATUM["WGS_1984",
-            SPHEROID["WGS 84",6378137,298.257223563,
-                AUTHORITY["EPSG","7030"]],
-            AUTHORITY["EPSG","6326"]],
-        PRIMEM["Greenwich",0,
-            AUTHORITY["EPSG","8901"]],
-        UNIT["degree",0.01745329251994328,
-            AUTHORITY["EPSG","9122"]],
-        AUTHORITY["EPSG","4326"]]"""
-    new_cs = osr.SpatialReference()
-    new_cs.ImportFromWkt(wgs84_wkt)
+  old_cs = osr.SpatialReference()
+  old_cs.ImportFromWkt(ds.GetProjectionRef())
 
-    transform = osr.CoordinateTransformation(old_cs, new_cs)    # create a transform object to convert between coordinate systems
+  # create the new coordinate system, wgs84 AKA latitude/longitude which Google Maps requires
+  wgs84_wkt = """
+  GEOGCS["WGS 84",
+      DATUM["WGS_1984",
+          SPHEROID["WGS 84",6378137,298.257223563,
+              AUTHORITY["EPSG","7030"]],
+          AUTHORITY["EPSG","6326"]],
+      PRIMEM["Greenwich",0,
+          AUTHORITY["EPSG","8901"]],
+      UNIT["degree",0.01745329251994328,
+          AUTHORITY["EPSG","9122"]],
+      AUTHORITY["EPSG","4326"]]"""
+  new_cs = osr.SpatialReference()
+  new_cs.ImportFromWkt(wgs84_wkt)
 
-    width = ds.RasterXSize
-    height = ds.RasterYSize
-    gt = ds.GetGeoTransform()
+  transform = osr.CoordinateTransformation(old_cs, new_cs)    # create a transform object to convert between coordinate systems
 
-    minx = gt[0]
-    maxx = gt[0] + width*gt[1] + height*gt[2]
-    miny = gt[3] + width*gt[4] + height*gt[5]
-    maxy = gt[3]
+  width = ds.RasterXSize
+  height = ds.RasterYSize
+  gt = ds.GetGeoTransform()
 
-    latlong = transform.TransformPoint(minx,miny)
-    latlong2 = transform.TransformPoint(maxx,maxy)
+  minx = gt[0]
+  maxx = gt[0] + width*gt[1] + height*gt[2]
+  miny = gt[3] + width*gt[4] + height*gt[5]
+  maxy = gt[3]
 
-    #write coordinates to file
-    textoutput.write(str(latlong[1]))
-    textoutput.write("\n")
-    textoutput.write(str(latlong[0]))
-    textoutput.write("\n")
-    textoutput.write(str(latlong2[1]))
-    textoutput.write("\n")
-    textoutput.write(str(latlong2[0]))
-    textoutput.write("\n")
-    textoutput.close()
+  latlong = transform.TransformPoint(minx,miny)
+  latlong2 = transform.TransformPoint(maxx,maxy)
 
-    color = open("color", "w")
-    color.write("0% 0 0 0\n100% 255 255 255\n")
-    color.close()
+  #write coordinates to file
+  textoutput.write(str(latlong[1]))
+  textoutput.write("\n")
+  textoutput.write(str(latlong[0]))
+  textoutput.write("\n")
+  textoutput.write(str(latlong2[1]))
+  textoutput.write("\n")
+  textoutput.write(str(latlong2[0]))
+  textoutput.write("\n")
+  textoutput.close()
 
-    os.system("gdaldem color-relief " + inputfilename + " color " + basefilename + ".png -of png")
+  color = open("color", "w")
+  color.write("0% 0 0 0\n100% 255 255 255\n")
+  color.close()
+
+  os.system("gdaldem color-relief " + inputfilename + " color " + basefilename + ".png -of png")
