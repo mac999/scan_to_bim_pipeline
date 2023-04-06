@@ -16,19 +16,39 @@ Scan to BIM project has purpose like below.
 0.1: Scan to BIM framework released. This pipeline used geometry computation algorithms, deep learning etc. 
 
 # setup development environment & packages 
-1. install python, pip
-https://phoenixnap.com/kb/how-to-install-python-3-ubuntu
-2. install gdal
-https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html
-3. install pdal
-https://installati.one/install-pdal-ubuntu-20-04/
-4. install cuda, tensorflow, pytorch
-5. install cmake
-https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/
+1. install python, pip</br>
+https://phoenixnap.com/kb/how-to-install-python-3-ubuntu</br>
+2. install gdal</br>
+https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html</br>
+3. install pdal</br>
+https://installati.one/install-pdal-ubuntu-20-04/</br>
+4. install cuda, tensorflow, pytorch</br>
+5. install cmake</br>
+https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/</br>
+</br>
+# PCL installation
+In addition, if you use PCL, install the below package.</br>
+sudo apt-get install build-essential g++ python3-dev autotools-dev libicu-dev libbz2-dev libboost-all-dev</br>
+sudo apt install libeigen3-dev</br>
+dpkg -L libeigen3-dev</br>
+sudo apt-get install -y libflann-dev</br>
+sudo apt-get install libpcap-dev</br>
+sudo apt-get install libgl1-mesa-dev</br>
+sudo apt install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools</br>
+sudo apt install clang-format</br>
+sudo apt-get install libusb-1.0-0-dev</br>
+sudo apt install libvtk9.1</br></br>
+</br>
+git clone https://github.com/PointCloudLibrary/pcl pcl-trunk</br>
+cd pcl-trunk && mkdir build && cd build</br>
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..</br>
+make -j2</br>
+sudo make -j2 install</br>
 
-In addition, if you use PCL, install PCL library by using CMake like below. 
-1. compile and install PCL (https://github.com/PointCloudLibrary/pcl)
-
+In detail, refer to </br>
+https://github.com/PointCloudLibrary/pcl</br>
+https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html</br>
+</br>
 # build & installation
 In terminal, input the below commands. </br>
 git clone https://github.com/mac999/scan_to_bim_pipeline</br>
