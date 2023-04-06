@@ -60,7 +60,11 @@ make</br>
 If there are depandency errors in requirements.txt, use requirements_simple.txt.
 
 # run
-python app.py
+design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
+TBD</br>
+</br>
+cd pipeline</br>
+python app.py</br>
 
 # license
 MIT license
