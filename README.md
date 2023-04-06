@@ -61,6 +61,10 @@ If there are depandency errors in requirements.txt, use requirements_simple.txt.
 
 # run
 design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
+  pipeline.[name]={stage*}</br>
+  stage={module_type, parameters}</br>
+  module_type={python program | docker image | binary executable program}</br>
+In example</br>
 ```
 {
     "pipeline.indoor_obb_extraction": [
