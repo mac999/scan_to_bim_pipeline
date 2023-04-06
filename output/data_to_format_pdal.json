@@ -1,0 +1,1 @@
+{"pipeline": ["/home/ktw/projects/pcd_pl/input/s3dis_area1_office1.las", {"type": "filters.transformation", "matrix": "1  0  0  0  0  1  0  0  0  0  1  0  0  0  0  1"}, {"type": "writers.pcd", "filename": "/home/ktw/projects/pcd_pl/output/s3dis_area1_office1/data_to_format.pcd"}]}
