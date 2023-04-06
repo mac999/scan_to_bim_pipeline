@@ -20,6 +20,7 @@ This pipeline used geometry computation algorithms, deep learning etc.
 
 1. git clone https://github.com/mac999/scan_to_bim_pipeline
 2. install python, pip
+https://phoenixnap.com/kb/how-to-install-python-3-ubuntu
 3. install gdal
 https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html
 4. install pdal
@@ -27,6 +28,7 @@ https://installati.one/install-pdal-ubuntu-20-04/
 5. install cuda, tensorflow, pytorch
 6. pip -r install requirements.txt
 7. install cmake
+https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/
 
 In addition, if you use PCL, install PCL library by using CMake like below. 
 1. compile and install PCL (https://github.com/PointCloudLibrary/pcl)
