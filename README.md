@@ -16,25 +16,29 @@ Scan to BIM project has purpose like below.
 0.1: Scan to BIM framework released. This pipeline used geometry computation algorithms, deep learning etc. 
 
 # setup development environment & packages 
-1. git clone https://github.com/mac999/scan_to_bim_pipeline
-2. install python, pip
+1. install python, pip
 https://phoenixnap.com/kb/how-to-install-python-3-ubuntu
-3. install gdal
+2. install gdal
 https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html
-4. install pdal
+3. install pdal
 https://installati.one/install-pdal-ubuntu-20-04/
-5. install cuda, tensorflow, pytorch
-6. install cmake
+4. install cuda, tensorflow, pytorch
+5. install cmake
 https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/
 
-# build & installation
 In addition, if you use PCL, install PCL library by using CMake like below. 
 1. compile and install PCL (https://github.com/PointCloudLibrary/pcl)
-2. cd scan_to_bim_pipeline
-3. pip -r install requirements.txt
-4. mkdir build
-5. cmake ..
-6. make
+
+# build & installation
+In terminal, input the below commands.
+git clone https://github.com/mac999/scan_to_bim_pipeline
+cd scan_to_bim_pipeline
+pip -r install requirements.txt
+mkdir build
+cmake ..
+make
+
+If there are depandency errors in requirements.txt, use requirements_simple.txt.
 
 # license
 MIT license
