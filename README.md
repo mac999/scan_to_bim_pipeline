@@ -61,7 +61,7 @@ If there are depandency errors in requirements.txt, use requirements_simple.txt.
 
 # run
 design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
-'''
+```
 {
     "pipeline.indoor_obb_extraction": [
         {
@@ -88,7 +88,7 @@ design pipeline by using SBDL(scan to bim description language) formatted by JSO
         }
     ]
 }
-'''
+```
 </br>
 cd pipeline</br>
 python app.py</br>
