@@ -1,5 +1,5 @@
-# project 
-Scan to BIM pipieline 
+# Scan to BIM project 
+Scan to BIM pipieline to convert 3D scan data (point cloud data) to BIM objects.
 
 # description
 Scan to BIM project has purpose like below. 
