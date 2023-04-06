@@ -22,6 +22,8 @@ https://phoenixnap.com/kb/how-to-install-python-3-ubuntu</br>
 https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html</br>
 3. install pdal</br>
 https://installati.one/install-pdal-ubuntu-20-04/</br>
+In terminal, run 'pdal' command. If there is error 'libgdal.so.29: cannot open shared object file', run the below command to make linked file name.</br>
+sudo ln -s libgdal.so.30 libgdal.so.29</br>
 4. install cuda, tensorflow, pytorch</br>
 5. install cmake</br>
 https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/</br>
