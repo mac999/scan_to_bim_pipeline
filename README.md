@@ -25,7 +25,6 @@ https://installati.one/install-pdal-ubuntu-20-04/</br>
 4. install cuda, tensorflow, pytorch</br>
 5. install cmake</br>
 https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/</br>
-</br>
 
 # PCL installation
 In addition, if you use PCL, install the below package.</br>
@@ -39,7 +38,6 @@ sudo apt install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools</br>
 sudo apt install clang-format</br>
 sudo apt-get install libusb-1.0-0-dev</br>
 sudo apt install libvtk9.1</br></br>
-</br>
 git clone https://github.com/PointCloudLibrary/pcl pcl-trunk</br>
 cd pcl-trunk && mkdir build && cd build</br>
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..</br>
@@ -49,7 +47,6 @@ sudo make -j2 install</br>
 In detail, refer to </br>
 https://github.com/PointCloudLibrary/pcl</br>
 https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html</br>
-</br>
 
 # build & installation
 In terminal, input the below commands. </br>
