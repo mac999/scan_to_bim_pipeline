@@ -30,14 +30,14 @@ In addition, if you use PCL, install PCL library by using CMake like below.
 1. compile and install PCL (https://github.com/PointCloudLibrary/pcl)
 
 # build & installation
-In terminal, input the below commands.
-git clone https://github.com/mac999/scan_to_bim_pipeline
-cd scan_to_bim_pipeline
-pip -r install requirements.txt
-mkdir build
-cmake ..
-make
-
+In terminal, input the below commands. </br>
+git clone https://github.com/mac999/scan_to_bim_pipeline</br>
+cd scan_to_bim_pipeline</br>
+pip -r install requirements.txt</br>
+mkdir build</br>
+cmake ..</br>
+make</br>
+</br>
 If there are depandency errors in requirements.txt, use requirements_simple.txt.
 
 # license
