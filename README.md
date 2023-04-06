@@ -59,6 +59,9 @@ make</br>
 </br>
 If there are depandency errors in requirements.txt, use requirements_simple.txt.
 
+# run
+python app.py
+
 # license
 MIT license
 
