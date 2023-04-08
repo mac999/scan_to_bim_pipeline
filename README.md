@@ -29,7 +29,7 @@ sudo ln -s libgdal.so.30 libgdal.so.29</br>
 https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/</br>
 
 # PCL installation
-In addition, if you use PCL, install the below package.</br>
+In addition, if you use PCL, run the below commands for installing package or 'sh build_pcl.sh'.</br>
 sudo apt-get install build-essential g++ python3-dev autotools-dev libicu-dev libbz2-dev libboost-all-dev</br>
 sudo apt install libeigen3-dev</br>
 dpkg -L libeigen3-dev</br>
