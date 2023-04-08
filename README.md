@@ -51,6 +51,11 @@ https://github.com/PointCloudLibrary/pcl</br>
 https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html</br>
 
 # build & installation
+Modify the below PCL_ROOT, VTK_INC, USR_LIB paths in [CMakeLists.txt](https://github.com/mac999/scan_to_bim_pipeline/blob/main/CMakeLists.txt)</br>
+set(PCL_ROOT "/home/ktw/projects/pcl-1.12")</br>
+set(VTK_INC "/usr/include/vtk-7.1")</br>
+set(USR_LIB "/usr/lib/x86_64-linux-gnu")</br>
+</br>
 In terminal, input the below commands. </br>
 git clone https://github.com/mac999/scan_to_bim_pipeline</br>
 cd scan_to_bim_pipeline</br>
