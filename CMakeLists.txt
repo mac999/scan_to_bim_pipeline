@@ -12,7 +12,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
 #set(DESTINATION_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
-set(PCL_ROOT "/home/ktw/projects/pcl-1.12")
+set(PCL_ROOT "/home/ktw/projects/pcl-1.13")
 set(VTK_INC "/usr/include/vtk-7.1")
 set(USR_LIB "/usr/lib/x86_64-linux-gnu")
 
