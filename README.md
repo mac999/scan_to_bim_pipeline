@@ -51,7 +51,7 @@ https://github.com/PointCloudLibrary/pcl</br>
 https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html</br>
 
 # build & installation
-Modify the below PCL_ROOT(PCL library path), VTK_INC(VTK include path), USR_LIB paths in [CMakeLists.txt](https://github.com/mac999/scan_to_bim_pipeline/blob/main/CMakeLists.txt) properly. In reference, PCL-1.13 has an memory error related to eigen library(2023/4/10).</br>
+Modify the below PCL_ROOT(PCL library path), VTK_INC(VTK include path), USR_LIB paths in [CMakeLists.txt](https://github.com/mac999/scan_to_bim_pipeline/blob/main/CMakeLists.txt) properly. In reference, PCL-1.13 has an memory error (handmade_aligned_free) related to eigen library(2023/4/10).</br>
 set(PCL_ROOT "/home/ktw/projects/pcl-1.12")</br>
 set(VTK_INC "/usr/include/vtk-7.1")</br>
 set(USR_LIB "/usr/lib/x86_64-linux-gnu")</br>
