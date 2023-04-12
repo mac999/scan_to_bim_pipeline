@@ -11,7 +11,9 @@ Scan to BIM project has purpose like below.
 
 <p align="center">
 <img height="200" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept1.JPG"/></BR><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept2.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/ifc_building_facade.jpg"/></BR><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_scan.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_BIM.PNG"/></br>
-<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/perform.PNG"/></p
+<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/perform.PNG"/>
+<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/perform2.PNG"/>
+</p>
 
 # version history
 0.1: Scan to BIM framework released. This pipeline used geometry computation algorithms, deep learning etc. 
