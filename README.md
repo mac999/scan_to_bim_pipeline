@@ -126,6 +126,9 @@ pipeline.indoor_obb_extraction(*.las) > *.geojson</br>
 cd pipeline</br>
 python app.py</br>
 
+# architecture
+
+
 # license
 MIT license
 
