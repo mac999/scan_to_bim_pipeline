@@ -4,7 +4,7 @@ Scan to BIM pipieline to convert 3D scan data (point cloud data) to BIM objects.
 # description
 Scan to BIM project has purpose like below. 
 
-1. 3D point cloud processsing pipeline implementation dynamically using JSON.
+1. 3D point cloud processsing pipeline implementation dynamically using simple SBDL(Scan to BIM Description Language. JSON format).
 2. Classification of outdoor building objects such as wall (facade), road etc. 
 3. Extraction geometry information from classification.
 4. Binding BIM object with geometry information and property set.
@@ -17,7 +17,15 @@ Scan to BIM project has purpose like below.
 </p>
 
 # version history
-0.1: Scan to BIM framework released. This pipeline used geometry computation algorithms, deep learning etc. 
+v0.1: Scan to BIM framework released. Simple SBDL was developed considering geometry computation algorithms, deep learning, docker based component etc. 
+
+# furture plan
+v0.5</br>
+> SBDL enhancement to supporting VFP(Visual Flow Programming) or LLM(Large Language Model. ex. ChatGPT).</br>
+> VFP support.</br>
+> Indoor Object Mapping support.</br>
+> MLOps support.</br>
+> Simple Scan Data Processing App using Scan to BIM application.</br>
 
 # setup development environment & packages 
 1. install python, pip</br>
