@@ -127,7 +127,9 @@ cd pipeline</br>
 python app.py</br>
 
 # architecture
-
+<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml3.PNG"/>
+<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml1.PNG"/>
+<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml2.PNG"/></br>
 
 # license
 MIT license
