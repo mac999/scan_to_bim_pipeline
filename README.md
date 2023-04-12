@@ -21,6 +21,10 @@ v0.1</br>
 > Scan to BIM pipeline framework released. Simple SBDL was developed considering geometry computation algorithms to extract outdoor facade object, deep learning, docker based component etc. 
 
 # furture plan
+v0.3</br>
+> documentation to use SBDL.</br>
+> Simple MLOps support for outdoor object train.</br>
+</br>
 v0.5</br>
 > SBDL enhancement to supporting VFP(Visual Flow Programming) or LLM(Large Language Model. ex. ChatGPT).</br>
 > VFP support.</br>
