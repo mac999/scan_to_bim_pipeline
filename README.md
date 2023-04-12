@@ -127,8 +127,8 @@ cd pipeline</br>
 python app.py</br>
 
 # architecture
-<p?
-<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml3.PNG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml1.PNG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml2.PNG"/></p>
+SBDL concept diagram and [UML](https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/SAD.uml) architecture</br>.
+<p align="center"><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml3.PNG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml1.PNG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml2.PNG"/></p>
 
 # license
 MIT license
