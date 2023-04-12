@@ -20,7 +20,7 @@ Scan to BIM project has purpose like below.
 v0.1</br>
 > Scan to BIM pipeline framework released. Simple SBDL was developed considering geometry computation algorithms to extract outdoor facade object, deep learning, docker based component etc. 
 
-# furture plan
+# furture research & development plan
 v0.3</br>
 > documentation to use SBDL.</br>
 > Simple MLOps support for outdoor object train.</br>
