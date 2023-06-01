@@ -38,6 +38,8 @@ v0.5</br>
 https://phoenixnap.com/kb/how-to-install-python-3-ubuntu</br>
 2. install gdal</br>
 https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html</br>
+if there is error in prebuild pdal, download, build and install pdal source files of github</br>  
+https://github.com/PDAL/PDAL</br>
 3. install pdal</br>
 https://installati.one/install-pdal-ubuntu-20-04/</br>
 In terminal, run 'pdal' command. If there is error 'libgdal.so.29: cannot open shared object file', run the below command to make linked file name.</br>
