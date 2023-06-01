@@ -41,9 +41,9 @@ https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg
 3. install pdal</br>
 https://installati.one/install-pdal-ubuntu-20-04/</br>
 In terminal, run 'pdal' command. If there is error 'libgdal.so.29: cannot open shared object file', run the below command to make linked file name.</br>
+sudo ln -s libgdal.so.30 libgdal.so.29</br>
 if there is error in prebuild pdal, download, build and install pdal source files of github 
 https://github.com/PDAL/PDAL</br>
-sudo ln -s libgdal.so.30 libgdal.so.29</br>
 4. install [cuda](https://developer.nvidia.com/cuda-toolkit-archive), [tensorflow](https://www.tensorflow.org/install?hl=ko), [pytorch](https://pytorch.org/get-started/locally/)</br>
 5. install cmake</br>
 https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/</br>
