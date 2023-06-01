@@ -36,17 +36,20 @@ v0.5</br>
 # setup development environment & packages 
 1. install python, pip</br>
 https://phoenixnap.com/kb/how-to-install-python-3-ubuntu</br>
-2. install gdal</br>
+2. install cmake</br>
+https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/</br>
+3. install [cuda](https://developer.nvidia.com/cuda-toolkit-archive), [tensorflow](https://www.tensorflow.org/install?hl=ko), [pytorch](https://pytorch.org/get-started/locally/)</br>
+4. install gdal</br>
 https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html</br>
-3. install pdal</br>
+5. install pdal</br>
 https://installati.one/install-pdal-ubuntu-20-04/</br>
 In terminal, run 'pdal' command. If there is error 'libgdal.so.29: cannot open shared object file', run the below command to make linked file name.</br>
 sudo ln -s libgdal.so.30 libgdal.so.29</br>
 if there is error in prebuild pdal, download, build and install pdal source files of github 
 https://github.com/PDAL/PDAL</br>
-4. install [cuda](https://developer.nvidia.com/cuda-toolkit-archive), [tensorflow](https://www.tensorflow.org/install?hl=ko), [pytorch](https://pytorch.org/get-started/locally/)</br>
-5. install cmake</br>
-https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/</br>
+6. install ifcopenshell</br>
+https://pypi.org/project/ifcopenshell/0.7.0.230418/</br>
+https://blenderbim.org/docs-python/ifcopenshell-python/installation.html</br>
 
 # PCL installation
 In addition, if you use PCL, run the below commands for installing package or 'sh [build_pcl.sh](https://github.com/mac999/scan_to_bim_pipeline/blob/main/build_pcl.sh)'.</br>
