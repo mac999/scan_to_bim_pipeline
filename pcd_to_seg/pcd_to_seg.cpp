@@ -16,8 +16,8 @@
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 
-std::string input_filename_ = ""; 	// "/home/ktw/Projects/pcd_pl/data/MapData_3_15_indoor_c.pcd";
-std::string output_filename_ = ""; 	// "/home/ktw/Projects/pcd_pl/output/pcd_to_seg";
+std::string input_filename_ = "/home/ktw/projects/pcd_pl/output/s3dis_area1_office1/data_to_format.pcd";
+std::string output_filename_ = "/home/ktw/projects/pcd_pl/output/s3dis_area1_office1/pcd_to_seg";
 int maximum_iteration(100);
 float threshold(0.11);
 std::string filetype = "pcd";
