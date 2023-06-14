@@ -1,0 +1,18 @@
+{
+    "pipeline.docker_ML_process": [
+        {
+            "type": "pcd_to_seg_ml", 
+            "remote_io_root": "$bin_path:/pcd_pl/", 
+            "cmd": "bash $bin_path/docker/docker_ml_gpu.sh open3d_gpu python /pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py", 
+            "note": "bash /pcd_pl/docker/docker_ml_gpu.sh open3d_gpu python /pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py --input /pcd_docker/S3DIS/ --output /pcd_docker/"
+        }
+    ],
+    "pipeline.docker_mesh_process": [
+        {
+            "type": "mesh_to_boolean_ml", 
+            "cmd": "bash $bin_path/docker/docker_ml_gpu.sh pymesh/pymesh python /pcd_pl/mesh_to_boolean_ml/mesh_to_boolean_ml.py", 
+            "note": "bash $bin_path/docker/docker_ml_gpu.sh pymesh/pymesh python /pcd_pl/mesh_to_boolean/mesh_to_boolean.py"
+        }
+    ]
+}
+

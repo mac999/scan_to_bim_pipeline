@@ -1,0 +1,24 @@
+{
+    "pipeline.outdoor_ground": [
+        {
+            "type": "pcd_to_dtm",
+            "pdal_pipeline": "pcd_to_dtm_pipeline.json",
+            "resolution": 0.2,
+            "classification": "building"
+        },
+        {
+            "type":"dtm_to_geo",
+            "simplify_factor": 10.0,
+            "remove_area": 20.0, 
+            "extract_pixel_min_value": 60,
+            "extract_pixel_max_value": 200, 
+            "output_dataset": "dimension.csv",
+            "output_pset": "json"
+        },
+        {
+            "type":"geo_to_bim_outdoor",
+            "link_pset": "link_propertyset.json",
+            "base_point": [724840.0, 6181000.0]
+        }
+    ]
+}
