@@ -20,6 +20,9 @@ Scan to BIM project has purpose like below.
 v0.1</br>
 > Scan to BIM pipeline framework released. Simple SBDL was developed considering geometry computation algorithms to extract outdoor facade object, deep learning, docker based component etc. 
 
+v0.2</br>
+> Docker image support.
+
 # furture research & development plan
 v0.3</br>
 > documentation to use SBDL.</br>
@@ -50,6 +53,10 @@ https://github.com/PDAL/PDAL</br>
 6. install ifcopenshell</br>
 https://pypi.org/project/ifcopenshell/0.7.0.230418/</br>
 https://blenderbim.org/docs-python/ifcopenshell-python/installation.html</br>
+7. build docker image</br>
+cd docker</br>
+cd build_docker_open3d</br>
+bash build_docker.sh</br>
 
 # PCL installation
 In addition, if you use PCL, run the below commands for installing package or 'sh [build_pcl.sh](https://github.com/mac999/scan_to_bim_pipeline/blob/main/build_pcl.sh)'.</br>
