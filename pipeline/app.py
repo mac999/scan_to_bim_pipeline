@@ -15,10 +15,16 @@ class application:
         self.pipes = list()
 
     def clear_files(self, folder_path):
-        path = folder_path + '*' 
-        files = glob.glob(path)
-        for f in files:
-            os.remove(f)
+        try:
+            shutil.rmtree(folder_path)
+            ''' 
+            path = folder_path + '*' 
+            files = glob.glob(path)
+            for f in files:
+                os.remove(f)
+            '''
+        except Exception as e:
+            pass
 
     def load(self, args, json_pipeline, pipeline_stage, input_file, output_file):
         if args == None:
@@ -61,6 +67,12 @@ class application:
 
         print('exit pipeline...')
 
+def is_data_file(fname):
+    # check fname ext with pcd
+    ext = os.path.splitext(fname)[1]
+    ext = ext.lower()
+    return ext == '.las' or ext == '.pcd' or ext == '.geojson'
+
 def process_multiple_pipeline(args):
     print('Begin processing multiple files...\n')
 
@@ -68,6 +80,8 @@ def process_multiple_pipeline(args):
     print(files)
 
     for file in files:
+        if is_data_file(file) == False:
+            continue
         path = os.path.dirname(file)
         name, ext = os.path.splitext(os.path.basename(file))
         print(f'\n\n* Processing pipline of {name}...\n')
@@ -93,7 +107,8 @@ def main():
         parser.add_argument('--pipeline', type=str, default='', required=False)
         parser.add_argument('--pipeline_tag', type=str, default='scan_to_bim.json', required=False)
         parser.add_argument('--stage', type=str, default='.*', required=False)
-        parser.add_argument('--input_path', type=str, default='/home/ktw/projects/pcd_pl/input/*.las', required=False)
+        # parser.add_argument('--input_path', type=str, default='/home/ktw/projects/pcd_pl/input/*.las', required=False)
+        parser.add_argument('--input_path', type=str, default='/home/ktw/projects/pcd_pl/input/*.*', required=False)
         parser.add_argument('--output_path', type=str, default='/home/ktw/projects/pcd_pl/output/', required=False)
         args = parser.parse_args() # ["--config", "/home/ktw/projects/pcd_pl/pipeline/config.json", "--pipeline", json_pipeline, "--input", file, "--output", output])
 

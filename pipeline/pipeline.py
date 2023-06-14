@@ -17,6 +17,23 @@ class pipeline_stage:
     def __init__(self, pipe_obj, name):
         self.name = name
         self.pipe = pipe_obj
+        
+    def update_docker_io_path(self, path):
+        remote_io_root = self.stage_config.get('remote_io_root')
+        if remote_io_root == None:
+            return path
+        remote_io_root = remote_io_root.replace('$bin_path', conf.bin_path)
+
+        # split token list using ':' from remote_io_root. ex) "remote_io_root": "$bin_path:/pcd_pl"
+        split = remote_io_root.split(':')
+        if len(split) < 2:
+            return path
+        
+        map1 = split[0]
+        map2 = split[1]
+        
+        mapped_path = path.replace(map1, map2)
+        return mapped_path
 
     def get_stage_config_params(self):
         input = output = ""
@@ -26,23 +43,34 @@ class pipeline_stage:
 
         input = self.stage_config.get('input')
         output = self.stage_config.get('output')
+        
+        input = self.update_docker_io_path(input)
+        output = self.update_docker_io_path(output)
+                                
         filter_type = self.stage_config.get('type')
         if input == None or output == None or filter_type == None:
             return None
 
         cmds = []
-        program_path = conf.bin_path + self.name + "/" + self.name
-        if os.path.isfile(program_path + ".py"):
-            cmds.append('python')
-            program_path = program_path + ".py"
-        else: 
-            program_path = conf.bin_path + "bin/" + self.name
-            if os.path.isfile(program_path) == False:
-                return None
+        cmd = self.stage_config.get('cmd')
+        if cmd == None:            
+            program_path = conf.bin_path + self.name + "/" + self.name
+            if os.path.isfile(program_path + ".py"):
+                cmds.append('python')
+                program_path = program_path + ".py"
+            else: 
+                program_path = conf.bin_path + "bin/" + self.name
+                if os.path.isfile(program_path) == False:
+                    return None
+            
+            cmds.append(program_path)
+        else:
+            cmd = cmd.replace('$bin_path/', conf.bin_path)
+            cmds = cmd.split()
 
         output_fname_tag = output + self.name
 
-        return cmds, program_path, input, output, output_fname_tag
+        return cmds, input, output, output_fname_tag
 
     def init(self, input_path = None):
         print(self.name)
@@ -50,8 +78,14 @@ class pipeline_stage:
         self.stage_config = self.pipe.get_stage_config(self.name)
         if self.stage_config != None:
             self.stage_config['input'] = conf.get_input_path()
-            self.stage_config['output'] = conf.get_output_path()
+            output_path = conf.get_output_path()
+            output_path = output_path + self.name + "/"
+            if not os.path.exists(output_path):
+                os.makedirs(output_path)
 
+            self.stage_config['output'] = output_path
+
+                            
         self.stage_config['input'] = input_path
         
     def set_input_path(self, path):
@@ -68,24 +102,23 @@ class pipeline_stage:
 
     def run(self):
         try:
-            cmds, program_path, input, output, output_fname_tag = self.get_stage_config_params()
-            if program_path == None:
+            cmds, input, output, output_fname_tag = self.get_stage_config_params()
+            if cmds == None:
                 return ""
             if self.active_run == False:
                 return output_fname_tag
 
             app_conf = self.pipe.get_app_config()
             root_path = app_conf.root_path
-
+            
             exec_cmd = cmds
-            exec_cmd.append(program_path)
             exec_cmd.append("--input")
             exec_cmd.append(input)
             exec_cmd.append("--output")
             exec_cmd.append(output_fname_tag)
 
             for param in self.stage_config:
-                if param == "type" or param == "input" or param == "output":
+                if param == "type" or param == 'cmd' or param == "input" or param == "output" or param == 'note':
                     continue
                 value = str(self.stage_config[param])
                 if param == "pdal_pipeline":
@@ -139,7 +172,7 @@ class pipeline:
             cls = getattr(pipeline_default_stage, stage_name)   # globals()[stage_name]
             obj = cls(self, type_name)
         except Exception as e:
-            print(e)
+            print('create default ' + stage_name)
             obj = self.create_dynamic_pipeline_stage(stage_name, type_name)
         return obj
 
@@ -190,10 +223,10 @@ class pipeline:
 
     def run(self):
         print('pipeline')
-        print(conf.root_path)
-        print(conf.bin_path)
-        print(conf.data_path)
-        print(conf.get_output_path())
+        print('root path: ', conf.root_path)
+        print('bin path: ', conf.bin_path)
+        print('data path: ', conf.data_path)
+        print('output path: ', conf.get_output_path())
 
         if self.pipes == None or len(self.pipes) == 0:
             return
