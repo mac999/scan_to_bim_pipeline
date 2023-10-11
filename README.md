@@ -2,13 +2,13 @@
 Scan to BIM pipieline to convert 3D scan data (point cloud data) to BIM objects.
 
 # description
-Scan to BIM project has purpose like below. 
-
-1. 3D point cloud processsing pipeline implementation dynamically using simple SBDL(Scan to BIM Description Language. JSON format).
-2. Classification of outdoor building objects such as wall (facade), road etc. 
-3. Extraction geometry information from classification.
-4. Binding BIM object with geometry information and property set.
-
+Scan to BIM research project has purpose like below.</br>
+</br>
+1. 3D point cloud processsing pipeline implementation dynamically using simple SBDL(Scan to BIM Description Language. JSON format).</br>
+2. Classification of outdoor building objects such as wall (facade), road etc. </br> 
+3. Extraction geometry information from classification.</br>
+4. Binding BIM object with geometry information and property set.</br>
+</br>
 <p align="center">
 <img height="200" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept1.JPG"/></BR><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept2.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/ifc_building_facade.jpg"/></br>
 <img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/perform.PNG"/>
@@ -29,12 +29,16 @@ v0.3</br>
 > Simple MLOps support for outdoor object train.</br>
 </br>
 
-v0.5</br>
+v0.4</br>
 > SBDL enhancement to supporting VFP(Visual Flow Programming) or LLM(Large Language Model. ex. ChatGPT).</br>
 > VFP support.</br>
 > Indoor Object Mapping support.</br>
 > MLOps support.</br>
 > Simple Scan Data Processing App using Scan to BIM application.</br>
+
+v0.5</br>
+> update PCD to DTM, DTM to Geometry, Geometry to Outdoor BIM object source files.</br>
+
 
 # setup development environment & packages 
 1. install python, pip</br>
