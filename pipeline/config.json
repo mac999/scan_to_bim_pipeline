@@ -4,5 +4,5 @@
     "bin_path": "/home/ktw/projects/pcd_pl/",
     "lib_path": "/home/ktw/projects/pcd_pl/lib/",
     "data_path": "/home/ktw/projects/pcd_pl/input/",
-    "debug_gui": true
+    "debug_gui": false
 }
