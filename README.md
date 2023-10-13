@@ -142,6 +142,10 @@ pipeline.indoor_obb_extraction(*.las) > *.geojson</br>
 cd pipeline</br>
 python app.py</br>
 
+# sample input dataset
+Download dataset and copy to /input folder.</br> 
+3D point cloud sample file [download](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd)</br>
+
 # architecture
 SBDL concept diagram and [UML](https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/SAD.uml) architecture.</br>
 <p align="center"><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml3.PNG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml1.PNG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml2.PNG"/></p>
