@@ -1,8 +1,7 @@
 # title: scan_to_bim_lib for scan to BIM
 # created date: 2022.6, taewook kang, laputa99999@gmail.com
 
-import os, sys, json, math, re, glob, subprocess, argparse, readline
-import cv2, trimesh
+import os, math
 import geopandas as gpd
 import numpy as np
 import sympy as sp
