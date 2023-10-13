@@ -9,7 +9,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from ast import literal_eval
 from ifcopenshell.api import run
 from math import sin, cos
-import ifc_building
+# import ifc_building
 
 run = ifcopenshell.api.run
 
@@ -238,8 +238,8 @@ def main():
     output_fname = args.output + ".ifc"
     geo_to_bim(input_fname, output_fname, bx, by)
 
-    output_fname = args.output + "_sample_building.ifc"
-    ifc_building.create_sample_building(output_fname)    # TBD. test. not working
+    # output_fname = args.output + "_sample_building.ifc"
+    # ifc_building.create_sample_building(output_fname)    # TBD. test. not working
 
 if __name__ == '__main__':
     main()

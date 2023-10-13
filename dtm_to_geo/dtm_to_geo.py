@@ -7,13 +7,10 @@ import geopandas as gpd
 import osgeo.ogr as ogr
 import open3d as o3d
 import pyvista as pv
-from tomlkit import integer
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely import affinity
-from rasterstats import zonal_stats
 from osgeo import gdal, osr
-from ipyleaflet import Map, GeoData, LayersControl
 from pyvista import examples
 from PIL import Image
 import matplotlib.pyplot as plt
