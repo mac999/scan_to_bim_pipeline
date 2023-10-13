@@ -116,7 +116,7 @@ Before run, install requirements_simple.txt(or requirements.txt) including the a
 2. download input sample files and copy them into ./input folder. refer to [sample dataset](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd).</br>
 3. run app.py like below.</br>
 python ./pipeline/app.py</br>
-<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/result_outdoor.png"/></br>
+<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/result_outdoor.PNG"/></br>
 4. Or design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
   pipeline.[name]={stage*}</br>
   stage={module_type, parameters}</br>
