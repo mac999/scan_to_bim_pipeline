@@ -39,7 +39,6 @@ v0.4</br>
 v0.5</br>
 > update PCD to DTM, DTM to Geometry, Geometry to Outdoor BIM object source files.</br>
 
-
 # setup development environment & packages 
 1. install python, pip</br>
 https://phoenixnap.com/kb/how-to-install-python-3-ubuntu</br>
@@ -102,10 +101,26 @@ make</br>
 If there are depandency errors in requirements.txt, use requirements_simple.txt.
 
 # run
-design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
+Before run, install requirements_simple.txt(or requirements.txt) including the above packages.</br>
+1. modify /pipeline/config.json considering your input, output folder path. In reference, root foler name is scan_to_bim_pipeline which you downloaded and installed from github.</br>
+```
+{
+    "app": "pcd_pipeline",
+    "root_path": "./pipeline/",
+    "bin_path": "./",
+    "lib_path": "./lib/",
+    "data_path": "./input/",
+    "debug_gui": false
+}
+```
+2. download input sample files and copy them into ./input folder. refer to [sample dataset](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd).</br>
+3. run app.py like below.</br>
+python ./pipeline/app.py</br>
+4. Or design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
   pipeline.[name]={stage*}</br>
   stage={module_type, parameters}</br>
   module_type={python program | docker image | binary executable program}</br></br>
+
 In scan to BIM pipeline example, </br>
 pipeline.indoor_obb_extraction = data_to_format > pcd_to_seg > pcd_to_clean > seg_to_geo</br>
 pipeline.indoor_obb_extraction(*.las) > *.geojson</br>
@@ -142,7 +157,7 @@ pipeline.indoor_obb_extraction(*.las) > *.geojson</br>
 cd pipeline</br>
 python app.py</br>
 
-# sample input dataset
+# sample dataset
 Download dataset and copy to /input folder.</br> 
 3D point cloud sample file [download](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd)</br>
 
