@@ -65,7 +65,7 @@ class application:
         for p in self.pipes:
             p.run()
 
-        print('exit pipeline...')
+        print('\n* exit pipeline...')
 
 def is_data_file(fname):
     # check fname ext with pcd
@@ -74,7 +74,7 @@ def is_data_file(fname):
     return ext == '.las' or ext == '.pcd' or ext == '.geojson'
 
 def process_multiple_pipeline(args):
-    print('Begin processing multiple files...\n')
+    print('* Begin processing multiple files...\n')
 
     files = glob.glob(args.input_path)
     print(files)
@@ -84,7 +84,7 @@ def process_multiple_pipeline(args):
             continue
         path = os.path.dirname(file)
         name, ext = os.path.splitext(os.path.basename(file))
-        print(f'\n\n* Processing pipline of {name}...\n')
+        print(f'\n\n* Processing pipline of {name}...')
 
         if args.pipeline != None and args.pipeline != "":
             json_pipeline = args.pipeline
@@ -96,8 +96,7 @@ def process_multiple_pipeline(args):
         app.load(args, json_pipeline, args.stage, file, output)
         app.run()
 
-    print('End processing.')
-
+    print('* End Scan to BIM processing.')
 
 def main():
     # load argument 

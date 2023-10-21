@@ -73,7 +73,7 @@ class pipeline_stage:
         return cmds, input, output, output_fname_tag
 
     def init(self, input_path = None):
-        print(self.name)
+        print('\n*', self.name)
 
         self.stage_config = self.pipe.get_stage_config(self.name)
         if self.stage_config != None:
@@ -127,7 +127,6 @@ class pipeline_stage:
                 exec_cmd.append(value)
 
             ret = subprocess.call(exec_cmd) 
-            print(ret)
 
         except Exception as e:
             print(e)
@@ -222,7 +221,7 @@ class pipeline:
         return None
 
     def run(self):
-        print('pipeline')
+        print('\n* run pipeline')
         print('root path: ', conf.root_path)
         print('bin path: ', conf.bin_path)
         print('data path: ', conf.data_path)
