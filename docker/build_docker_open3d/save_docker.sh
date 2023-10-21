@@ -1,0 +1,1 @@
+docker save -o open3d_gpu.tar open3d_gpu

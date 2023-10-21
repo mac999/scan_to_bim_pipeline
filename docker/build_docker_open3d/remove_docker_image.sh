@@ -1,0 +1,2 @@
+sudo docker -rmi -f $@
+

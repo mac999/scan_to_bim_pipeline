@@ -1,0 +1,16 @@
+{
+	"furniture": [
+		{"Table-Rectangular":"72\" x 30\""},
+		{"Table-Rectangular":"72\" x 30\""},
+		{"Chair-Executive":"Chair-Executive"},
+		{"Chair-Executive":"Chair-Executive"},
+		{"Sofa-Corbu":"Sofa"},
+		{"Sofa-Corbu":"Sofa"}
+	], 
+	"floor": [
+		{"floor":"Generic 150mm"}		
+	],
+	"wall": [
+		{"wall":"Generic - 200mm"}		
+	]
+}
