@@ -169,7 +169,8 @@ def get_elevation_from_area(elev_map, poly):
 
         if isinstance(poly, MultiPolygon):
             max_p = None
-            for p in poly:
+            polys = list(poly.geoms)    # fixed for shapely 2.0.0
+            for p in polys:
                 if max_p == None:
                     max_p = p
                 if max_p.area < p.area:
