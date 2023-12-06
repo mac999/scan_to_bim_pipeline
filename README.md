@@ -35,7 +35,7 @@ v0.4</br>
 > Indoor Object Mapping support.</br>
 > MLOps support.</br>
 > Simple Scan Data Processing App using Scan to BIM application.</br>
-1) deep learing based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using revit plugin. 5) 3D data argumentation. 6) LiDAR simuation 7) 3D PCD quality check</br>
+<p>1) deep learing based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using revit plugin. 5) 3D data argumentation. 6) LiDAR simuation 7) 3D PCD quality check</p></br>
 
 v0.5</br>
 > update PCD to DTM, DTM to Geometry, Geometry to Outdoor BIM object source files.</br>
