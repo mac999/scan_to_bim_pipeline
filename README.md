@@ -121,9 +121,12 @@ python ./pipeline/app.py</br>
 4. Or design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
   pipeline.[name]={stage*}</br>
   stage={module_type, parameters}</br>
-  module_type={python program | docker image | binary executable program}</br></br>
+  parameters={name, value}*</br>
+  module_type={python program | docker image | binary executable program}</br>
+  * parameters should be defined in module before usage.</br>
+  condition={"in_stage_return", "out_stage_return"}</br></br>
 
-In scan to BIM pipeline example, </br>
+In scan to BIM pipeline using SBDL example, </br>
 pipeline.indoor_obb_extraction = data_to_format > pcd_to_seg > pcd_to_clean > seg_to_geo</br>
 pipeline.indoor_obb_extraction(*.las) > *.geojson</br>
 </br>
