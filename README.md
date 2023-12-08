@@ -174,7 +174,7 @@ SBDL concept diagram and [UML](https://github.com/mac999/scan_to_bim_pipeline/bl
 MIT license.</br></br>
 Acknowledge.</br>
 > Scan To BIM Technology Development 3D Urban Building Model Process Automation, 2022</br>
-> 3D vision & AI based Indoor object Scan to BIM pipeline for building facility management, 2023</br></br>
+> 3D vision & AI based Indoor object Scan to BIM pipeline for building facility management, 2023</br>
 Funded by KICT</br></br>
 Organization Roles</br>
 > KICT: Scan to BIM pipeline architecture design, algorithm programming, test, code management</br></br>
