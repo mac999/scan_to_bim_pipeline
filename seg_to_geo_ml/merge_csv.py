@@ -1,3 +1,9 @@
+# title: merge csv files
+# author: taewook kang
+# version: 1.0.0
+# email: laputa99999@gmail.com
+# date: 2023.11.1
+# reference
 import os, json, glob, argparse, fnmatch, traceback, threading, csv
 import matplotlib.pyplot as plt
 import pandas as pd
