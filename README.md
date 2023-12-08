@@ -38,6 +38,7 @@ v0.4</br>
 > MLOps support.</br>
 > Simple Scan Data Processing App using Scan to BIM application.</br>
 <p>1) deep learing based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using revit plugin. 5) 3D data argumentation. 6) LiDAR simuation 7) 3D PCD quality check</p></br>
+<p><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_ml.JPG"/></p>
 
 v0.5</br>
 > update PCD to DTM, DTM to Geometry, Geometry to BIM object source files.</br>
