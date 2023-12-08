@@ -26,7 +26,7 @@ v0.2</br>
 > 2023.9. [LiDAR simulation tool](https://github.com/mac999/simulate_LiDAR)</br>
 > 2023.10. [3D scan data quality checker tool](https://github.com/mac999/check_scan_quality).</br>
 
-# furture research & development plan
+# furture update plan
 v0.3</br>
 > 2023.12, documentation to use SBDL.</br>
 > 2023.12, simple MLOps codes for outdoor object train.</br>
