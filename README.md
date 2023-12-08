@@ -18,27 +18,29 @@ Scan to BIM research project has purpose like below.</br>
 
 # version history
 v0.1</br>
-> Scan to BIM pipeline framework released. Simple SBDL was developed considering geometry computation algorithms to extract outdoor facade object, deep learning, docker based component etc. 
+> 2022.11, Scan to BIM pipeline framework released. Simple SBDL was developed considering geometry computation algorithms to extract outdoor facade object, deep learning, docker based component etc. 
 
 v0.2</br>
-> Docker image support.
+> 2023.7, Docker image support. pipeline revision for multiple input files processing. refactoring.</br>
+> 2023.8, [Data augumentation tool](https://github.com/mac999/pcd_augmentation)</br>
+> 2023.9. [LiDAR simulation tool](https://github.com/mac999/simulate_LiDAR)</br>
+> 2023.10. [3D scan data quality checker tool](https://github.com/mac999/check_scan_quality).</br>
 
 # furture research & development plan
 v0.3</br>
-> documentation to use SBDL.</br>
-> Simple MLOps support for outdoor object train.</br>
+> 2023.12, documentation to use SBDL.</br>
+> 2023.12, simple MLOps codes for outdoor object train.</br>
 </br>
 
 v0.4</br>
-> SBDL enhancement to supporting VFP(Visual Flow Programming) or LLM(Large Language Model. ex. ChatGPT).</br>
-> VFP support.</br>
-> Indoor Object Mapping support.</br>
+> 2024.2, SBDL enhancement to supporting VFP(Visual Flow Programming) or LLM(Large Language Model. ex. ChatGPT).</br>
+> 2024.3, Update indoor Object Mapping support.</br>
 > MLOps support.</br>
 > Simple Scan Data Processing App using Scan to BIM application.</br>
 <p>1) deep learing based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using revit plugin. 5) 3D data argumentation. 6) LiDAR simuation 7) 3D PCD quality check</p></br>
 
 v0.5</br>
-> update PCD to DTM, DTM to Geometry, Geometry to Outdoor BIM object source files.</br>
+> update PCD to DTM, DTM to Geometry, Geometry to BIM object source files.</br>
 
 # setup development environment & packages 
 1. install python, pip</br>
