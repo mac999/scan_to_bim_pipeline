@@ -179,8 +179,8 @@ Funded by KICT</br></br>
 Organization Roles</br>
 > KICT: Scan to BIM pipeline architecture design, algorithm programming, test, code management</br></br>
 Specially, Thanks for contribution like below</br>
-> IUPUI, UNF: usecase, code, policy survey</br>
-> Purdue University: deep learning train, dataset collection, labeling, analysis</br>
-> Stony Brook University: data collection using SLAM, labeling, analysis</br>
+> IUPUI (Prof. Koo Dan, Prof. Kwonsik Song), UNF (Prof. Jonghoon Kim: usecase, code, policy survey</br>
+> Purdue University (Prof. Kyubyung Kang): deep learning train, dataset collection, labeling, analysis</br>
+> Stony Brook University (Prof. Jongsung Choi): data collection using SLAM, labeling, analysis</br>
 </br>
 Kang, T., Patil, S., Kang, K., Koo, D. and Kim, J., 2020. Rule-based scan-to-BIM mapping pipeline in the plumbing system. Applied Sciences, 10(21), p.7422. https://www.mdpi.com/2076-3417/10/21/7422
