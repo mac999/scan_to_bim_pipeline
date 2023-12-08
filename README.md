@@ -186,4 +186,5 @@ Specially, Thanks for contribution like below</br>
 > Purdue University (Prof. Kyubyung Kang): deep learning train, dataset collection, labeling, analysis</br>
 > Stony Brook University (Prof. Jongsung Choi): data collection using SLAM, labeling, analysis</br>
 </br>
-Kang, T., Patil, S., Kang, K., Koo, D. and Kim, J., 2020. Rule-based scan-to-BIM mapping pipeline in the plumbing system. Applied Sciences, 10(21), p.7422. https://www.mdpi.com/2076-3417/10/21/7422
+Kang, TW., Patil, S., Kang, K., Koo, D. and Kim, J., 2020. Rule-based scan-to-BIM mapping pipeline in the plumbing system. Applied Sciences, 10(21), p.7422. https://www.mdpi.com/2076-3417/10/21/7422</br>
+Kang, TW., 2023, Scan to BIM Mapping Process Description for Building Representation in 3D GIS, Applied Sciences. 13(17), https://www.mdpi.com/2076-3417/13/17/9986
