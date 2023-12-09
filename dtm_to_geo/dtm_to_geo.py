@@ -1,6 +1,8 @@
 # title: dtm_to_geo for scan to BIM
-# created date: 2022.6.10, taewook kang, laputa99999@gmail.com
-
+# author: taewook kang
+# version: 1.0.0
+# email: laputa99999@gmail.com
+# date: 2022.6
 import sys, os, glob, ast, csv, re, json, subprocess, argparse, readline, simplekml, cv2
 import numpy as np
 import geopandas as gpd
