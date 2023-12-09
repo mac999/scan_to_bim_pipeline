@@ -1,0 +1,32 @@
+{
+    "title": "segment to geometry mapping",
+    "color_mapping": 
+    [
+        {
+            "color": [1.0,0.0,0.0],
+            "label": "ceiling"
+        },
+        {
+            "color": [0.0,1.0,0.0],
+            "label": "floor"
+        },
+        {
+            "color": [1.0,1.0,0.0],
+            "label": "beam"
+        },
+        {
+            "color": [0.0,1.0,1.0],
+            "label": "column"
+        },
+        {
+            "color": [0.0,0.0,1.0],
+            "label": "wall"
+        }
+    ],
+    "log":
+    {
+        "log_text": true,
+        "log_image": false,
+        "research_areas": [90.403, 74.123, 06.633, 09.965, 72.613]
+    }
+}
