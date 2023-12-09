@@ -1,3 +1,33 @@
+# title: seg to geo ml
+# author: taewook kang
+# version: 1.0.0
+# email: laputa99999@gmail.com
+# date: 2023.9.1
+# install:
+# import open3d.ml.tf as ml3d
+# sudo apt-get update
+# sudo apt-get install libx11-6
+# sudo apt-get install -y libgl1-mesa-glx
+# pip install open3d tensorboard numpy
+# appendix: 
+''' segmentation target. 
+    label_to_names = {
+        0: 'ceiling', # dark red              # red         [1,0,0]
+        1: 'floor',   # red                   # green       [0,1,0]
+        2: 'wall',    # light red             # blue        [1,1,0]
+        3: 'beam',      # dark green          # yellow      [0,1,1]
+        4: 'column',    # green               # cyan        [0,0,1]
+        5: 'window',    # light green         # blue
+        6: 'door',      # dark blue           # dark blue
+        7: 'table',     # blue                # dark pink
+        8: 'chair',     # light blue          # middle pink
+        9: 'sofa',      # dark yellow         # light pink
+        10: 'bookcase', # yellow              # gray
+        11: 'board',    # light yellow        # blue
+        12: 'clutter'   # dark cyan           # white
+    }
+'''
+
 import os, argparse, glob, logging, pickle, shutil, pdb, subprocess
 import torch
 import numpy as np
@@ -8,12 +38,6 @@ from open3d._ml3d.datasets.base_dataset import BaseDataset, BaseDatasetSplit
 from pathlib import Path
 
 log = logging.getLogger(__name__)
-
-# import open3d.ml.tf as ml3d
-# sudo apt-get update
-# sudo apt-get install libx11-6
-# sudo apt-get install -y libgl1-mesa-glx
-# pip install open3d tensorboard numpy
 
 def save_pcd_to_pkl(input_fname, output_fname):
     try:
@@ -51,7 +75,7 @@ def convert_pcd_to_pkl(input_path, output_path):
         input_fname = os.path.splitext(input_fname_ext)[0]        
         save_pcd_to_pkl(fname, output_path + "/" + input_fname + ".pkl")
 
-class pcd_dataset_S3DIS(ml3d.datasets.S3DIS):
+class pcd_dataset_default(ml3d.datasets.S3DIS): # pretrain model. default set. 
     def __init__(self, 
                  dataset_path, 
                  name='S3DIS',
@@ -85,23 +109,9 @@ class pcd_dataset_S3DIS(ml3d.datasets.S3DIS):
         return
         
     def get_split(self, split):
-        return pcd_dataset_S3DIS_split(self, split=split)
+        return pcd_dataset_default_split(self, split=split)
 
-class pcd_dataset_S3DIS_split(BaseDatasetSplit):
-    """This class is used to create a split for S3DIS dataset.
-
-    Initialize the class.
-
-    Args:
-        dataset: The dataset to split.
-        split: A string identifying the dataset split that is usually one of
-            'training', 'test', 'validation', or 'all'.
-        **kwargs: The configuration of the model as keyword arguments.
-
-    Returns:
-        A dataset split object providing the requested subset of the data.
-    """
-
+class pcd_dataset_default_split(BaseDatasetSplit):
     def __init__(self, dataset, split='training'):
         super().__init__(dataset, split=split)
         log.info("Found {} pointclouds for {}".format(len(self.path_list),
@@ -146,6 +156,9 @@ class pcd_dataset_S3DIS_split(BaseDatasetSplit):
         attr = {'idx': idx, 'name': name, 'path': pc_path, 'split': split}
         return attr
 
+# TBD
+# class pcd_...
+
 def get_gpu_device():
     dev = 'cpu'
     gpu_flag = torch.cuda.is_available()
@@ -189,6 +202,7 @@ def main():
     parser.add_argument('--output', type=str, default='/pcd_pl/output/conferenceRoom1/pcd_to_seg_ml/pcd_to_seg_ml', help='output data folder', required=False)    
     parser.add_argument('--remote_io_root', type=str, default='$bin_path:/pcd_pl/', help='remote input, output root folder path', required=False) 
     parser.add_argument('--max_input_file', type=int, default=3, help='input max input file count', required=False)
+    parser.add_argument('--option', type=str, default='pcd_to_seg_option.json', help='define segments count, class, grouping', required=False)
 
     args = parser.parse_args()        
     args.input = update_remote_input_folder(args.input)
@@ -216,7 +230,7 @@ def main():
     print('loading pipeline')    
     cfg.dataset['dataset_path'] = output_folder
     dataset_path = cfg.dataset.pop('dataset_path', None)
-    dataset = pcd_dataset_S3DIS(dataset_path, **cfg.dataset)
+    dataset = pcd_dataset_default(dataset_path, **cfg.dataset)
 
     pipeline = ml3d.pipelines.SemanticSegmentation(model, dataset=dataset, device=dev, **cfg.pipeline)
 
@@ -242,27 +256,9 @@ def main():
 
         results = pipeline.run_inference(data)
 
-        # colors = [[0.2,0,0], [0.5,0,0], [1.0,0,0], [0,0.2,0], [0,0.5,0], [0,1.0,0], [0,0,0.2], [0,0,0.5], [0,0,1.0], [0.2,0.2,0], [0.5,0.5,0], [1.0,1.0,0], [0,0.2,0.2], [0,0.5,0.5], [0,1.0,1.0]]
         colors = [[1,0,0], [0,1,0], [0,0,1], [1,1,0], [0,1,1], [0,0,1], 
                   [0,0,0.5], [0.2,0,0.2], [.5,0,.5], [1,0,1], [0.5,0.5,0.5], [0,0,1], [1,1,1], 
-                  [0,0,1], [0.2,0.2,0.2]]
-        ''' 23.7.6. 바닥/천정/벽체/기둥/보 5개만 구분 계획임.
-        label_to_names = {
-            0: 'ceiling', # dark red              # red
-            1: 'floor',   # red                   # green
-            2: 'wall',    # light red             # blue
-            3: 'beam',      # dark green          # yellow
-            4: 'column',    # green               # cyan
-            5: 'window',    # light green         # blue
-            6: 'door',      # dark blue           # dark blue
-            7: 'table',     # blue                # dark pink
-            8: 'chair',     # light blue          # middle pink
-            9: 'sofa',      # dark yellow         # light pink
-            10: 'bookcase', # yellow              # gray
-            11: 'board',    # light yellow        # blue
-            12: 'clutter'   # dark cyan           # white
-        }
-        '''
+                  [0,0,1], [0.2,0.2,0.2]]   # To distinguesh objects, color schema was changed. # colors = [[0.2,0,0], [0.5,0,0], [1.0,0,0], [0,0.2,0], [0,0.5,0], [0,1.0,0], [0,0,0.2], [0,0,0.5], [0,0,1.0], [0.2,0.2,0], [0.5,0.5,0], [1.0,1.0,0], [0,0.2,0.2], [0,0.5,0.5], [0,1.0,1.0]]
 
         input_path = os.path.dirname(input_path_fname)
         input_fname_ext = os.path.basename(input_path_fname)
