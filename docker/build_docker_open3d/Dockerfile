@@ -1,5 +1,5 @@
 FROM pytorch/pytorch:1.12.1-cuda11.3-cudnn8-devel
-MAINTAINER taewook
+MAINTAINER kangtaewook
 
 RUN apt-get update
 RUN apt-get install -y libx11-6 libgl1-mesa-glx
