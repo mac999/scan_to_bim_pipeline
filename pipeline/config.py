@@ -1,6 +1,8 @@
 # title: config for scan to BIM
-# created date: 2022.6, taewook kang, laputa99999@gmail.com
-
+# author: taewook kang
+# version: 1.0.0
+# email: laputa99999@gmail.com
+# date: 2022.6
 import sys
 import json
 from sympy import root

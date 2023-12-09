@@ -1,7 +1,11 @@
 # title: pipeline for scan to BIM
-# created date: 2022.6, taewook kang, laputa99999@gmail.com
-# revised date: 2023.1.2, taewook kang, major update about new stage class dynamically. 
-# revised date: 2023.1.30, taewook kang, update for  
+# author: taewook kang
+# version: 1.0.0
+# email: laputa99999@gmail.com
+# date:  
+#   2022.6, taewook kang, init
+#   2023.1.2, taewook kang, major update about new stage class dynamically. 
+#   2023.1.30, taewook kang, update 
 
 import os, sys, re, json, glob, subprocess
 import config
