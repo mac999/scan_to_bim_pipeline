@@ -1,3 +1,7 @@
+# title: pcd to bbox
+# author: taewook kang
+# version: 1.0.0
+# email: laputa99999@gmail.com
 # date: 2023.1.4
 import os, json, glob, argparse, fnmatch
 import numpy as np
@@ -91,10 +95,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='pcd to bbox')
-    parser.add_argument('--input', type=str, default='./Stanford3dDataset_v1.2/Area_1/',
-                        help='input PCD text file')
-    parser.add_argument('--output', type=str, default='./pcd_to_bbox.json',
-                        help='output BBox json file')
+    parser.add_argument('--input', type=str, default='H:/data/Stanford3dDataset_v1.2/Area_1/', help='input PCD text file')
+    parser.add_argument('--output', type=str, default='./pcd_to_bbox1.json', help='output BBox json file')
     
     args = parser.parse_args()
     main(args)
