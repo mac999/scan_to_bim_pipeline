@@ -2,7 +2,10 @@
 # author: taewook kang
 # version: 1.0.0
 # email: laputa99999@gmail.com
-# date: 2022.6
+# date: 
+# 2022.6. init version
+# 2023.12. refactoring.
+#
 import sys, os, glob, ast, csv, re, json, subprocess, argparse, readline, simplekml, cv2
 import numpy as np
 import geopandas as gpd
@@ -21,6 +24,7 @@ lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
 sys.path.append(lib_path)    
 import scan_to_bim_lib
 
+log_flag = False
 args = None
 
 def convert_tiff_png(inputfname, outputfname):
@@ -86,9 +90,6 @@ def save_transform_project_data(infile, outfile):
     return transform_json_file, projection_file, tm, proj, proj_data
 
 def save_shp(out_fname, polygons, transform_json_file, projection_file, tm, proj, proj_data):
-    # https://gis.stackexchange.com/questions/392515/create-a-shapefile-from-geometry-with-ogr
-    # https://gis.stackexchange.com/questions/264618/reprojecting-and-saving-shapefile-in-gdal
-
     try:
         tm = []
         proj_data = ""
@@ -100,6 +101,8 @@ def save_shp(out_fname, polygons, transform_json_file, projection_file, tm, proj
             text = f.read()
             proj_data = text
 
+        # https://gis.stackexchange.com/questions/392515/create-a-shapefile-from-geometry-with-ogr
+        # https://gis.stackexchange.com/questions/264618/reprojecting-and-saving-shapefile-in-gdal
         shapes = []    
         for i in range(len(polygons)):
             polygon = polygons[i]
@@ -263,42 +266,42 @@ def save_mesh(tif_file, out_fname, polygons, depth_img, transform_json_file, pro
         merged_mesh = mesh.merge(meshes)
         merged_mesh.save(out_fname)
 
-        # elevation view
-        '''
-        rows = elev_map.shape[0]
-        z = np.where(elev_map >= 0.0, elev_map, 0.0)
-        for i in range(len(polygons)):
-            polygon = polygons[i]
-            poly = polygon.buffer(-5.0, resolution=16, join_style=2, mitre_limit=1)
-            if isinstance(poly, MultiPolygon):
-                max_p = None
-                for p in poly:
-                    if max_p == None:
-                        max_p = p
-                    if max_p.area < p.area:
-                        max_p = p
-                poly = max_p
+        if log_flag:
+            # elevation view
+            rows = elev_map.shape[0]
+            z = np.where(elev_map >= 0.0, elev_map, 0.0)
+            for i in range(len(polygons)):
+                polygon = polygons[i]
+                poly = polygon.buffer(-5.0, resolution=16, join_style=2, mitre_limit=1)
+                if isinstance(poly, MultiPolygon):
+                    max_p = None
+                    for p in poly:
+                        if max_p == None:
+                            max_p = p
+                        if max_p.area < p.area:
+                            max_p = p
+                    poly = max_p
 
-            x, y = poly.exterior.xy
-            y2 = y # [(y1 - rows) * -1.0 for y1 in y]
-            plt.plot(x, y2)
+                x, y = poly.exterior.xy
+                y2 = y # [(y1 - rows) * -1.0 for y1 in y]
+                plt.plot(x, y2)
+                
+            plt.imshow(z, 'Greys_r')    # cmap='Reds') # 
+            plt.show()
             
-        plt.imshow(z, 'Greys_r')    # cmap='Reds') # 
-        plt.show()
-        
-        # 3D view
-        p = pv.Plotter()
-        camera = pv.Camera()
-        p.camera = camera
-        p.camera.position = (0.0, 0.0, 200.0)
-        p.camera.focal_point = (0.0, 0.0, 0.0)
-        p.camera.up = (0.0, 1.0, 0.0)
-        # p.camera.zoom(1.4)
+            # 3D view
+            p = pv.Plotter()
+            camera = pv.Camera()
+            p.camera = camera
+            p.camera.position = (0.0, 0.0, 200.0)
+            p.camera.focal_point = (0.0, 0.0, 0.0)
+            p.camera.up = (0.0, 1.0, 0.0)
+            # p.camera.zoom(1.4)
 
-        p.add_mesh(merged_mesh, smooth_shading = False) # , texture = tex)    
-        p.show_axes()
-        p.show()
-        '''
+            p.add_mesh(merged_mesh, smooth_shading = False) # , texture = tex)    
+            p.show_axes()
+            p.show()
+            
     except Exception as e:
         print(e)
 
