@@ -51,9 +51,7 @@ def create_basic_wall(self):
     return extrusion
 
 def create_building(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0):
-    # TBD. https://blenderbim.org/docs-python/ifcopenshell-python/code_examples.html
-
-    model = ifcopenshell.file()
+    model = ifcopenshell.file() # TBD. https://blenderbim.org/docs-python/ifcopenshell-python/code_examples.html
     project = run("root.create_entity", model, ifc_class="IfcProject", name="My Project")
     run("unit.assign_unit", model)  # Assigning without arguments defaults to metric units
     context = run("context.add_context", model, context_type="Model")   # Let's create a modeling geometry context, so we can store 3D geometry (note: IFC supports 2D too!)
@@ -202,11 +200,6 @@ def geo_to_bim(in_fname, out_fname, bx, by):
         print(e)
 
 def intersect_mesh(args):
-    # https://compas.dev/examples/example-mesh-subdivision-schemes/doc.html
-    # https://towardsdatascience.com/5-step-guide-to-generate-3d-meshes-from-point-clouds-with-python-36bad397d8ba
-    # https://trimsh.org/examples/quick_start.html
-    # https://githubhot.com/repo/mikedh/trimesh/issues/1492
-
     mesh = trimesh.Trimesh(vertices=[[0, 0, 0], [0, 0, 10], [0, 10, 0]],
                         faces=[[0, 1, 2]])
 
@@ -222,6 +215,11 @@ def intersect_mesh(args):
     ax.plot_trisurf(mesh.vertices[:, 0], mesh.vertices[:,1], triangles=mesh.faces, Z=mesh.vertices[:,2], alpha=0.5)
     # ax.add_collection(Poly3DCollection([plane1], alpha=0.5, edgecolors='r'))
     plt.show()
+
+    # https://compas.dev/examples/example-mesh-subdivision-schemes/doc.html
+    # https://towardsdatascience.com/5-step-guide-to-generate-3d-meshes-from-point-clouds-with-python-36bad397d8ba
+    # https://trimsh.org/examples/quick_start.html
+    # https://githubhot.com/repo/mikedh/trimesh/issues/1492
 
 def main():
     parser = argparse.ArgumentParser()
