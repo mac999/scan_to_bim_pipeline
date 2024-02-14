@@ -37,8 +37,7 @@ class application:
         if input_file != None:
             self.config.set_input_path(input_file)
         if output_file != None:
-            self.clear_files(output_file)
-
+            # self.clear_files(output_file)
             self.config.set_output_path(output_file)
             fname = os.path.basename(json_pipeline)
             try:
@@ -73,7 +72,7 @@ def is_data_file(fname):
     # check fname ext with pcd
     ext = os.path.splitext(fname)[1]
     ext = ext.lower()
-    return ext == '.las' or ext == '.pcd' or ext == '.geojson'
+    return ext == '.las' or ext == '.laz' or ext == '.pcd' or ext == '.geojson'
 
 def process_multiple_pipeline(args):
     print('* Begin processing multiple files...\n')
@@ -109,8 +108,8 @@ def main():
         parser.add_argument('--pipeline_tag', type=str, default='scan_to_bim.json', required=False)
         parser.add_argument('--stage', type=str, default='.*', required=False)
         # parser.add_argument('--input_path', type=str, default='/home/ktw/projects/pcd_pl/input/*.las', required=False)
-        parser.add_argument('--input_path', type=str, default='./input/*.*', required=False)
-        parser.add_argument('--output_path', type=str, default='./output/', required=False)
+        parser.add_argument('--input_path', type=str, default='F:/projects/scan_to_bim_pipeline/input/*.*', required=False)
+        parser.add_argument('--output_path', type=str, default='F:/projects/scan_to_bim_pipeline/output/', required=False)
         args = parser.parse_args() # ["--config", "/home/ktw/projects/pcd_pl/pipeline/config.json", "--pipeline", json_pipeline, "--input", file, "--output", output])
 
         process_multiple_pipeline(args)    

@@ -7,7 +7,7 @@
 #   2023.1.2, taewook kang, major update about new stage class dynamically. 
 #   2023.1.30, taewook kang, update 
 
-import os, sys, re, json, glob, subprocess
+import os, sys, re, json, glob, subprocess, shutil
 import config
 
 conf = config.config()
@@ -84,6 +84,15 @@ class pipeline_stage:
             self.stage_config['input'] = conf.get_input_path()
             output_path = conf.get_output_path()
             output_path = output_path + self.name + "/"
+
+            if 'active' in self.stage_config:
+                self.active_run = self.stage_config['active']
+            print(f'active={self.active_run}')
+            if self.active_run == True:
+                try:
+                    shutil.rmtree(output_path)
+                except Exception as e:
+                    pass
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
@@ -237,7 +246,7 @@ class pipeline:
         if self.active_run == False:
             return
 
-        # self.pipes[0].set_active_run(False)   # for test.
+        # self.pipes[0].set_active_run(False)   # TBD. json. for test.
         # self.pipes[1].set_active_run(False)
         # self.pipes[2].set_active_run(False)
         # self.pipes[3].set_active_run(False)
