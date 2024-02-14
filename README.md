@@ -25,16 +25,17 @@ v0.2</br>
 > 2023.8, [Data augumentation tool](https://github.com/mac999/pcd_augmentation)</br>
 > 2023.9. [LiDAR simulation tool](https://github.com/mac999/simulate_LiDAR)</br>
 > 2023.10. [3D scan data quality checker tool](https://github.com/mac999/check_scan_quality).</br>
+> 2024.2. Update pcd_to_DTM, DTM_to_geo module to fix issue, add options such as "active", "log_view", "height_building_offset", "height_ground_offest", "max_building_height".</br>
 
 # furture update plan
 v0.3</br>
-> 2023.12, documentation to use SBDL.</br>
-> 2023.12, simple MLOps codes for outdoor object train.</br>
+> documentation to use SBDL.</br>
+> simple MLOps codes for outdoor object train.</br>
 </br>
 
 v0.4</br>
-> 2024.2, SBDL enhancement to supporting VFP(Visual Flow Programming) or LLM(Large Language Model. ex. ChatGPT).</br>
-> 2024.3, Update indoor Object Mapping support.</br>
+> SBDL enhancement to supporting VFP(Visual Flow Programming) or LLM(Large Language Model. ex. ChatGPT).</br>
+> Update indoor Object Mapping support.</br>
 > MLOps support.</br>
 > Simple Scan Data Processing App using Scan to BIM application.</br>
 > <p>1) deep learing based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using revit plugin. 5) 3D data argumentation. 6) LiDAR simuation 7) 3D PCD quality check</p>
