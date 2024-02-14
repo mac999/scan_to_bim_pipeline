@@ -138,6 +138,7 @@ pipeline.indoor_obb_extraction(*.las) > *.geojson</br>
     "pipeline.indoor_obb_extraction": [
         {
             "type": "data_to_format",
+            "active": true,
             "output_type": ".pcd"
         },
         {
