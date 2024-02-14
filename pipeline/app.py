@@ -2,7 +2,10 @@
 # author: taewook kang
 # version: 1.0.0
 # email: laputa99999@gmail.com
-# date: 2022.6
+# date: 
+# 2022.6. initial
+# 2024.2. update
+# 
 import sys, os, re, argparse, traceback, json, glob, shutil
 from yaml import parse
 import pipeline, config
