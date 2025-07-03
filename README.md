@@ -3,7 +3,7 @@ Scan to BIM pipieline to convert 3D scan data (point cloud data) to BIM objects.
 
 # description
 Scan to BIM research project has purpose like below.</br>
-In reference, you can use [simple scan to model program (SMP)](https://github.com/mac999/scan_to_model_pipeline.git)
+In reference, you can use [simple scan to model program (SMP)](https://github.com/mac999/scan_to_model_pipeline.git), simple 3D scan to model pipeline version.
 </br>
 1. 3D point cloud processsing pipeline implementation dynamically using simple SBDL(Scan to BIM Description Language. JSON format).</br>
 2. Classification of outdoor building objects such as wall (facade), road etc. </br> 
