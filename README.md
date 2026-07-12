@@ -11,10 +11,10 @@ For reference, you can use the [scan to model program (SMP)](https://github.com/
 4. Binding BIM objects with geometry information and property sets.</br>
 </br>
 <p align="center">
-<img height="200" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept1.JPG"/></BR><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept2.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/ifc_building_facade.jpg"/></br>
-<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/perform.PNG"/>
-<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/perform2.PNG"/></br>
-<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_scan.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_BIM.PNG"/>
+<img height="200" src="./doc/concept1.JPG"/></BR><img height="150" src="./doc/concept2.JPG"/><img height="150" src="./doc/ifc_building_facade.jpg"/></br>
+<img height="150" src="./doc/perform.PNG"/>
+<img height="150" src="./doc/perform2.PNG"/></br>
+<img height="150" src="./doc/indoor_scan.JPG"/><img height="150" src="./doc/indoor_BIM.PNG"/>
 </p>
 
 # version history
@@ -43,10 +43,13 @@ v0.4</br>
 > MLOps support.</br>
 > Simple scan data processing app using the Scan to BIM pipeline.</br>
 > <p>1) deep learning based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using a Revit plugin. 5) 3D data augmentation. 6) LiDAR simulation. 7) 3D PCD quality check.</p>
-> <p style="text-align: center;"><img height="200" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_ml.JPG"/><img height="200" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_perform1.JPG"/></p>
+> <p style="text-align: center;"><img height="200" src="./doc/indoor_ml.JPG"/><img height="200" src="./doc/indoor_perform1.JPG"/></p>
 
 v0.5</br>
 > Update PCD to DTM, DTM to Geometry, and Geometry to BIM object source files.</br>
+
+v0.6</br>
+> Fix the errors after updating the lasted libraries and algorithms.</br>
 
 # setup development environment & packages 
 Python 3.11 is supported (3.9–3.11 recommended).
@@ -123,7 +126,7 @@ Before running, install requirements_simple.txt (or requirements.txt) including 
 2. Download the input sample files and copy them into the ./input folder. Refer to the [sample dataset](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd).</br>
 3. Run app.py as below.</br>
 python ./pipeline/app.py</br>
-<img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/result_outdoor.PNG"/></br>
+<img height="150" src="./doc/result_outdoor.PNG"/></br>
 4. Or design a pipeline using SBDL (Scan to BIM Description Language) formatted as JSON like below.</br>
   pipeline.[name]={stage*}</br>
   stage={module_type, parameters}</br>
@@ -180,8 +183,8 @@ LiDAR files [USGS gov](https://www.usgs.gov/faqs/what-lidar-data-and-where-can-i
 Top 6 Free LiDAR Data Sources [LiDAR files](https://gisgeography.com/top-6-free-lidar-data-sources/)</br>
 
 # architecture
-SBDL concept diagram and [UML](https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/SAD.uml) architecture.</br>
-<p align="center"><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml3.PNG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml1.PNG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/uml2.PNG"/></p>
+SBDL concept diagram and [UML](./doc/SAD.uml) architecture.</br>
+<p align="center"><img height="150" src="./doc/uml3.PNG"/><img height="150" src="./doc/uml1.PNG"/><img height="150" src="./doc/uml2.PNG"/></p>
 
 # license
 MIT license.</br></br>
