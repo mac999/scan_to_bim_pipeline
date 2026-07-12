@@ -1,13 +1,9 @@
 # title: geo_to_bim for scan to BIM
 # created date: 2022.5.10, taewook kang, laputa99999@gmail.com
 # 
-import os, sys, json, glob, numpy, uuid, re, argparse, readline, trimesh, time, tempfile
-import numpy as np, sympy as sp, pandas as pd, matplotlib.pyplot as plt, ifcopenshell
-from telnetlib import theNULL
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from ast import literal_eval
-from ifcopenshell.api import run
+import os, sys, json, glob, numpy, uuid, argparse, trimesh
+import numpy as np, pandas as pd, matplotlib.pyplot as plt, ifcopenshell
+import ifcopenshell.api
 from math import sin, cos
 # import ifc_building
 

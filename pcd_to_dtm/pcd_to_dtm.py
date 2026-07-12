@@ -1,4 +1,4 @@
-import sys, os, io, json, subprocess, argparse, readline, glob, re
+import sys, os, json, subprocess, argparse, glob
 lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
 sys.path.append(lib_path)    
 import scan_to_bim_lib
@@ -47,10 +47,11 @@ def main():
 
         cmd = ["pdal", "pipeline", args.pdal_pipeline]
 
-        ret = subprocess.call(cmd) 
+        ret = subprocess.call(cmd)
         print(ret)
 
-        os.remove(temp_las_file)
+        if os.path.exists(temp_las_file):
+            os.remove(temp_las_file)
 
 if __name__ == "__main__":
     try:

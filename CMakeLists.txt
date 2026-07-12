@@ -1,41 +1,45 @@
 # PCD pipeline
 # developed by KTW(laputa99999@gmail.com)
-# set default env varibles
 cmake_minimum_required(VERSION 3.16.1)
+
+project(pcd_pipeline)
 
 set(SUBSYS_NAME pcd_pipeline)
 set(SUBSYS_DESC "Useful PCD pipeline command")
-set(DEFAULT ON)
-set(REASON "")
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
-#set(DESTINATION_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
-set(PCL_ROOT "/home/ktw/projects/pcl-1.13")
-set(VTK_INC "/usr/include/vtk-7.1")
-set(USR_LIB "/usr/lib/x86_64-linux-gnu")
 
 message("BIN PATH = " ${CMAKE_BINARY_DIR})
-message("PCL ROOT = " ${PCL_ROOT}/common/include)
-message("VTK INC = " ${VTK_INC})
 
-# set project
-project(pcd_pipeline)
+# Locate PCL (pulls in Boost, Eigen, FLANN and VTK transitively).
+# If PCL was built from source without installing, pass its build dir:
+#   cmake -DPCL_DIR=/path/to/pcl/build ..
+find_package(PCL 1.12 REQUIRED COMPONENTS common features filters io kdtree keypoints octree recognition registration sample_consensus search segmentation surface visualization)
+find_package(Boost REQUIRED COMPONENTS filesystem program_options)
 
-# set include and library
-include_directories(PUBLIC ${PCL_ROOT}/common/include ${PCL_ROOT}/features/include ${PCL_ROOT}/filters/include ${PCL_ROOT}/geometry/include ${PCL_ROOT}/io/include ${PCL_ROOT}/kdtree/include ${PCL_ROOT}/keypoints/include ${PCL_ROOT}/octree/include ${PCL_ROOT}/recognition/include ${PCL_ROOT}/registration/include ${PCL_ROOT}/sample_consensus/include ${PCL_ROOT}/search/include ${PCL_ROOT}/segmentation/include ${PCL_ROOT}/visualization/include ${PCL_ROOT}/surface/include ${PCL_ROOT}/build/include /usr/include/eigen3 ${VTK_INC})
+include_directories(${PCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
-link_directories(${PCL_ROOT}/build/lib/ ${USR_LIB})
-link_libraries(libpcl_common.so libpcl_features.so libpcl_io.so libpcl_kdtree.so libpcl_common.so libpcl_ml.so libpcl_keypoints.so libpcl_octree.so libpcl_outofcore.so libpcl_recognition.so libpcl_registration.so libpcl_sample_consensus.so libpcl_segmentation.so libpcl_search.so libpcl_surface.so libpcl_surface.so libpcl_visualization.so libpcl_filters.so libboost_filesystem.so libvtkIOLegacy-7.1.so libvtkCommonExecutionModel-7.1.so libvtkCommonDataModel-7.1.so libvtkCommonCore-7.1.so libvtkRenderingLOD-7.1.so libvtkRenderingAnnotation-7.1.so libvtkRenderingFreeType-7.1.so libvtkRenderingCore-7.1.so libvtkFiltersSources-7.1.so libvtkFiltersCore-7.1.so libvtkCommonMath-7.1.so libboost_program_options.so)
-
-# program
+# program modules. each stage is an independent executable so new stages can be added easily.
 add_executable(pcd_density ./pcd_density/pcd_density.cpp)
-add_executable(pcd_normal ./pcd_normal/pcd_normal.cpp)
-add_executable(pcd_viewer ./pcd_viewer/pcd_viewer.cpp)
-# add_executable(pcd_to_plane ./pcd_to_plane/pcd_to_plane.cpp)
-add_executable(pcd_to_seg ./pcd_to_seg/pcd_to_seg.cpp)
-add_executable(seg_to_geo ./seg_to_geo/seg_to_geo.cpp)
+target_link_libraries(pcd_density ${PCL_LIBRARIES})
 
-# copy binary files
-# file(COPY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DESTINATION ${DESTINATION_OUTPUT_PATH})
+add_executable(pcd_to_seg ./pcd_to_seg/pcd_to_seg.cpp)
+target_link_libraries(pcd_to_seg ${PCL_LIBRARIES} Boost::filesystem)
+
+add_executable(seg_to_geo ./seg_to_geo/seg_to_geo.cpp)
+target_link_libraries(seg_to_geo ${PCL_LIBRARIES} Boost::filesystem)
+
+# optional modules. only built when the source file exists in the working tree.
+foreach(optional_module pcd_normal pcd_viewer pcd_to_plane)
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${optional_module}/${optional_module}.cpp)
+        add_executable(${optional_module} ./${optional_module}/${optional_module}.cpp)
+        target_link_libraries(${optional_module} ${PCL_LIBRARIES})
+    endif()
+endforeach()

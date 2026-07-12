@@ -7,7 +7,7 @@
 # 2023.12. refactoring.
 # 2024.2. update
 # 
-import sys, os, glob, ast, csv, re, json, subprocess, argparse, readline, simplekml, cv2
+import sys, os, glob, csv, json, subprocess, argparse, cv2
 import numpy as np
 import geopandas as gpd
 import osgeo.ogr as ogr
@@ -17,10 +17,8 @@ from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely import affinity
 from osgeo import gdal, osr
-from pyvista import examples
 from PIL import Image
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 
 lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
 sys.path.append(lib_path)    
@@ -61,10 +59,10 @@ def save_elevation_data(infile, outfile):
 	np.save(outfile, elevation)
 
 def save_transform_project_data(infile, outfile):
-	# save dtm crs metadata 
+	# save dtm crs metadata
 	dtm = gdal.Open(infile)
-	if dtm == None: 
-		return "", ""
+	if dtm is None:
+		return "", "", None, None, ""
 
 	tm = dtm.GetGeoTransform()  # https://gdal.org/tutorials/geotransforms_tut.html
 	print(tm)
@@ -112,8 +110,8 @@ def save_shp(out_fname, polygons, transform_json_file, projection_file, tm, proj
 
 			if isinstance(polygon, MultiPolygon):
 				max_p = None
-				for p in polygon:
-					if max_p == None:
+				for p in polygon.geoms:    # fixed for shapely 2.0.0
+					if max_p is None:
 						max_p = p
 					if max_p.area < p.area:
 						max_p = p
@@ -186,27 +184,26 @@ def get_elevation_from_area(elev_map, poly):
 		t = 0.0
 		max_height = 0.0
 		x, y = poly.exterior.coords.xy
-		z = np.where(elev_map >= 0.0, elev_map, 0.0)
 
 		rows = len(elev_map)
 		columns = len(elev_map[0])
-		count = len(x)
-		for i in range(count):
+		valid_count = 0
+		for i in range(len(x)):
 			height = 0.0
 			vx = int(x[i])
 			vy = int(y[i])  # vy = rows - vy
-			if vy < rows and vx < columns:
+			if 0 <= vy < rows and 0 <= vx < columns:    # negative index would wrap around the raster
 				height = elev_map[vy, vx]
 			if height <= -99:
 				continue
 			if max_height < height:
 				max_height = height
 
-			count = count + 1
+			valid_count = valid_count + 1
 			t = t + height
-		if count == 0:
+		if valid_count == 0:
 			return 0.0
-		return max_height # t / count
+		return max_height # t / valid_count
 	except BaseException as err:
 		print(err)
 
@@ -302,8 +299,8 @@ def save_mesh(tif_file, out_fname, polygons, depth_img, transform_json_file, pro
 					poly = polygon # poly = polygon.buffer(-5.0, resolution=16, join_style=2, mitre_limit=1)
 					if isinstance(poly, MultiPolygon):
 						max_p = None
-						for p in poly:
-							if max_p == None:
+						for p in poly.geoms:    # fixed for shapely 2.0.0
+							if max_p is None:
 								max_p = p
 							if max_p.area < p.area:
 								max_p = p
@@ -337,8 +334,8 @@ def save_mesh(tif_file, out_fname, polygons, depth_img, transform_json_file, pro
 		print(e)
 
 def rotate_image(img, angle):
-	if img == None:
-		return
+	if img is None:
+		return None
 
 	(h, w) = img.shape[:2]
 	(cX, cY) = (w // 2, h // 2)
@@ -434,18 +431,21 @@ def create_geometry_from_dtm(infile, outfile):
 	save_dataset(infile, outfile + '_' + args.output_dataset, simplified_polygons, tm, outfile + "_elevation")
 	save_geojson(outfile + ".geojson", outfile + '.shp', outfile + '_' + args.output_dataset)
 
+def str2bool(value):    # argparse's type=bool treats any non-empty string like 'false' as True
+	return str(value).strip().lower() in ('true', '1', 'yes', 'on')
+
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--input', type=str, required=True)
 	parser.add_argument('--output', type=str, required=True)
-	parser.add_argument('--log_view', type=bool, default=False, required=True)
-	parser.add_argument('--simplify_factor', type=float, default=10.0, help='simplication factor')
-	parser.add_argument('--remove_area', type=float, default=20.0, required=True)
-	parser.add_argument('--extract_pixel_min_value', type=int, default=60, required=True)
-	parser.add_argument('--extract_pixel_max_value', type=int, default=200, required=True)
-	parser.add_argument('--height_building_offset', type=float, default=5.0, required=True)
-	parser.add_argument('--height_ground_offest', type=float, default=10.0, required=True)	
-	parser.add_argument('--max_building_height', type=float, default=100.0, required=True)	
+	parser.add_argument('--log_view', type=str2bool, default=False, required=False)
+	parser.add_argument('--simplify_factor', type=float, default=10.0, help='simplification factor')
+	parser.add_argument('--remove_area', type=float, default=20.0, required=False)
+	parser.add_argument('--extract_pixel_min_value', type=int, default=60, required=False)
+	parser.add_argument('--extract_pixel_max_value', type=int, default=200, required=False)
+	parser.add_argument('--height_building_offset', type=float, default=5.0, required=False)
+	parser.add_argument('--height_ground_offest', type=float, default=10.0, required=False)
+	parser.add_argument('--max_building_height', type=float, default=100.0, required=False)
 	parser.add_argument('--output_dataset', type=str, default="dataset.csv", required=False)  # TBD    
 	parser.add_argument('--output_pset', type=str, default="json", required=False)  # TBD
 

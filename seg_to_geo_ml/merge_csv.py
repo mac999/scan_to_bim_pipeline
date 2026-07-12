@@ -16,7 +16,7 @@ def get_factor(name, tag, end_tag):
 	factor = 0.0
 	for i in range(len(tokens)):
 		token = tokens[i]
-		if token[0] == tag:
+		if len(token) and token[0] == tag:
 			factor = token[1:]
 			if len(end_tag):
 				dot_index = token.rindex(end_tag)
@@ -24,7 +24,7 @@ def get_factor(name, tag, end_tag):
 			break
 	return float(factor)
 
-def save_image(fname, df, key1, key2, desc):
+def save_image(fname, df, key1, key2, desc, index):
 	value1 = df[key1].tolist()
 	value2 = df[key2].tolist()
 
@@ -43,15 +43,15 @@ def save_image(fname, df, key1, key2, desc):
 	top_y = y_max - 0.2
 	plt.text(mid_x, top_y, f'R = {r_value:.2f}', ha='center', va='top')
 
-	output = fname.replace('#', label + '_chart_' + str(index))
-	output = output.replace('csv', 'png')
+	output = fname.replace('#', 'chart_' + str(index))
+	output = output.replace('.csv', '.png')
 
 	# plt.gca().set_aspect("equal")
 	log = f"{desc}"
 	plt.title(log)
 	plt.xlabel(key1)
 	plt.ylabel(key2)
-	plt.savefig(fname)
+	plt.savefig(output)
 
 def main():
 	parser = argparse.ArgumentParser(description='seg to geo ml')
@@ -81,13 +81,12 @@ def main():
 
 		alpha = get_factor(fname, 'a', '')
 		smooth = get_factor(fname, 's', '.')
-		df['alpha'] = alpha 
+		df['alpha'] = alpha
 		df['smooth'] = smooth
-		label = df['class']
 
 		df_no_duplicates = df.drop_duplicates(subset=['outline_size'])
 		desc = f'a={alpha:.2f}, s={smooth:.3f}'
-		save_image(args.output, df_no_duplicates, 'outline_size', 'outline_area_accuracy', desc)
+		save_image(args.output, df_no_duplicates, 'outline_size', 'outline_area_accuracy', desc, index)
 
 		merged_data = pd.concat([merged_data, df_no_duplicates], ignore_index=True)
 	output = args.output.replace('#', 'list')

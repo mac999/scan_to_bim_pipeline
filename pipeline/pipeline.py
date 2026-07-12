@@ -48,13 +48,12 @@ class pipeline_stage:
 
         input = self.stage_config.get('input')
         output = self.stage_config.get('output')
-        
-        input = self.update_docker_io_path(input)
-        output = self.update_docker_io_path(output)
-                                
         filter_type = self.stage_config.get('type')
         if input == None or output == None or filter_type == None:
             return None
+
+        input = self.update_docker_io_path(input)
+        output = self.update_docker_io_path(output)
 
         cmds = []
         cmd = self.stage_config.get('cmd')
@@ -99,8 +98,8 @@ class pipeline_stage:
 
             self.stage_config['output'] = output_path
 
-                            
-        self.stage_config['input'] = input_path
+        if self.stage_config != None:
+            self.stage_config['input'] = input_path
         
     def set_input_path(self, path):
         self.stage_config['input'] = path
@@ -115,10 +114,12 @@ class pipeline_stage:
         return self.active_run
 
     def run(self):
+        output_fname_tag = ""
         try:
-            cmds, input, output, output_fname_tag = self.get_stage_config_params()
-            if cmds == None:
+            params = self.get_stage_config_params()
+            if params == None:
                 return ""
+            cmds, input, output, output_fname_tag = params
             if self.active_run == False:
                 return output_fname_tag
 

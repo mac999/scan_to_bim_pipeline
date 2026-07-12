@@ -4,10 +4,9 @@
 # desc: if alpha = 0 then convex. if alpha = 2.0 then concave. if alpha = 3.5 then loss shape  
 # ref: https://pypi.org/project/alphashape/
 
-import os, sys, argparse, readline, alphashape, json, glob, pymesh
+import os, sys, argparse, alphashape, json, glob
 import pandas as pd
 import numpy as np
-from descartes import PolygonPatch
 import matplotlib.pyplot as plt
 import open3d as o3d
 
@@ -59,11 +58,11 @@ def get_obj_type(poly):
     centroid = np.mean(poly, axis=0)
 
     params = {}
-    if angle >= np.deg2rad(args.wall_min_angle) and angle <= np.deg2rad(args.wall_max_angle):        
+    if angle >= np.deg2rad(args.wall_min_angle) and angle <= np.deg2rad(args.wall_max_angle):
         label = 'wall'
         params = {'height': args.wall_height}
     else:
-        if centroid[1] < args.floor_max_height:
+        if centroid[2] < args.floor_max_height:   # z coordinate is the height axis
             label = 'floor'
         else:
             label = 'ceiling'
@@ -85,10 +84,10 @@ def get_alpha_shape(input_poly, ratio):
         ax.plot_trisurf(*zip(*alpha_shape.vertices), triangles=alpha_shape.faces)
         plt.show()
     elif alpha_type.find('MultiPolygon') > 0:  # if 2D multi polygon model
-        multipoly = list(alpha_shape)
+        multipoly = list(alpha_shape.geoms)    # fixed for shapely 2.0.0
         poly = None
         for p in multipoly:
-            if poly == None:
+            if poly is None:
                 poly = list(p.exterior.coords)
             elif len(poly) < len(p.exterior.coords):
                 poly = list(p.exterior.coords)
@@ -209,10 +208,11 @@ def main():
     files = glob.glob(args.input + "*.pcd")
     print(files)
 
-    for index, infile in enumerate(files): 
-        outfilename = scan_to_bim_lib.get_pcd_index_filepath(args.output, infile, fname_only=True)
+    labels, plane3ds, obbs = [], [], []
+    for index, infile in enumerate(files):
+        outfilename = scan_to_bim_lib.get_pcd_index_filepath(args.output, infile)
+        outfilename, ext = os.path.splitext(outfilename)
 
-        labels = plane3ds = obbs = []
         label, plane3d, obb = geo_to_obj(infile, outfilename)
         labels.append(label)
         plane3ds.append(plane3d)

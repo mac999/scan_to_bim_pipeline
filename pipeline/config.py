@@ -5,7 +5,6 @@
 # date: 2022.6
 import sys
 import json
-from sympy import root
 
 class config:
     pipeline_fname = ""

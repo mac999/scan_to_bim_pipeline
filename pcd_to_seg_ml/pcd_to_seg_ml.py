@@ -131,7 +131,7 @@ class pcd_dataset_default_split(BaseDatasetSplit):
         points = np.array(pc[:, :3], dtype=np.float32)
         feat = np.array(pc[:, 3:6], dtype=np.float32)
         labels = np.zeros(points.shape[0]) # np.array(pc[:, 6], dtype=np.int32).reshape((-1,))
-        labels = labels.astype(np.integer)
+        labels = labels.astype(np.int32)   # np.integer is an abstract type. removed as dtype in numpy 1.24+
 
         data = {
             'point': points,

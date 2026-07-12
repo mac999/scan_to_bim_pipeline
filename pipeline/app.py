@@ -7,7 +7,6 @@
 # 2024.2. update
 # 
 import sys, os, re, argparse, traceback, json, glob, shutil
-from yaml import parse
 import pipeline, config
 
 # define app
@@ -110,15 +109,13 @@ def main():
         parser.add_argument('--pipeline', type=str, default='', required=False)
         parser.add_argument('--pipeline_tag', type=str, default='scan_to_bim.json', required=False)
         parser.add_argument('--stage', type=str, default='.*', required=False)
-        # parser.add_argument('--input_path', type=str, default='/home/ktw/projects/pcd_pl/input/*.las', required=False)
-        parser.add_argument('--input_path', type=str, default='F:/projects/scan_to_bim_pipeline/input/*.*', required=False)
-        parser.add_argument('--output_path', type=str, default='F:/projects/scan_to_bim_pipeline/output/', required=False)
+        parser.add_argument('--input_path', type=str, default='./input/*.*', required=False)
+        parser.add_argument('--output_path', type=str, default='./output/', required=False)
         args = parser.parse_args() # ["--config", "/home/ktw/projects/pcd_pl/pipeline/config.json", "--pipeline", json_pipeline, "--input", file, "--output", output])
 
-        process_multiple_pipeline(args)    
+        process_multiple_pipeline(args)
     except Exception as e:
-        traceback.format_exc()
-        pass
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()

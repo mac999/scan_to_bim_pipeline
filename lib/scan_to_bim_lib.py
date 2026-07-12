@@ -2,15 +2,10 @@
 # created date: 2022.6, taewook kang, laputa99999@gmail.com
 
 import os, math
-import geopandas as gpd
 import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
-from shapely.geometry import Polygon
-from sys import base_exec_prefix
 from sklearn.decomposition import PCA # as RandomizedPCA
-from scipy.linalg import norm
-from mpl_toolkits.mplot3d import Axes3D
 
 def get_file_index(infile):
   filename, file_extension = os.path.splitext(infile) 
@@ -78,9 +73,12 @@ def rotation_4x4matrix_from_vectors(vec1, vec2, origin):
   v = np.cross(a, b)
   s = np.linalg.norm(v)
   c = np.dot(a, b)
-  kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
   I = np.eye(3)
-  rotation_matrix = I + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
+  if s < 1e-12:   # vectors are parallel. identity if same direction, 180 degree flip if opposite
+    rotation_matrix = I if c > 0 else -I
+  else:
+    kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    rotation_matrix = I + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
 
   r2 = []
   for v in rotation_matrix:
@@ -186,16 +184,12 @@ def transform_2d_to_3d(tf, X_2d):
   Y2 = convert_4d_3d_vector(Y)
   return Y2
 
-def get_OBB(vector_2d):
+def get_OBB(vector_2d, show = False):
   a  = np.array(vector_2d) # ([(3.7, 1.7), (4.1, 3.8), (4.7, 2.9), (5.2, 2.8), (6.0,4.0), (6.3, 3.6), (9.7, 6.3), (10.0, 4.9), (11.0, 3.6), (12.5, 6.4)])
   ca = np.cov(a,y = None,rowvar = 0,bias = 1)
 
   v, vect = np.linalg.eig(ca)
   tvect = np.transpose(vect)
-
-  fig = plt.figure(figsize=(12,12))
-  ax = fig.add_subplot(111)
-  ax.scatter(a[:,0],a[:,1])
 
   #use the inverse of the eigenvectors as a rotation matrix and rotate the points so they align with the x and y axes
   ar = np.dot(a,np.linalg.inv(tvect))
@@ -215,11 +209,14 @@ def get_OBB(vector_2d):
   corners = np.dot(corners,tvect)
   center = np.dot(center,tvect)
 
-  ax.scatter([center[0]],[center[1]])    
-  ax.plot(corners[:,0],corners[:,1],'-')
-
-  plt.axis('equal')
-  plt.show()
+  if show:  # debug view. blocks until the window is closed
+    fig = plt.figure(figsize=(12,12))
+    ax = fig.add_subplot(111)
+    ax.scatter(a[:,0],a[:,1])
+    ax.scatter([center[0]],[center[1]])
+    ax.plot(corners[:,0],corners[:,1],'-')
+    plt.axis('equal')
+    plt.show()
 
   return list(corners)
 
@@ -233,7 +230,9 @@ def length(v):
   return math.sqrt(dotproduct(v, v))
 
 def get_angle_between_vector(v, base = [0, 0, 1]):
-  return math.acos(dotproduct(v, base) / (length(v) * length(base)))
+  cos_angle = dotproduct(v, base) / (length(v) * length(base))
+  cos_angle = max(-1.0, min(1.0, cos_angle))  # clamp against floating point error
+  return math.acos(cos_angle)
 
 def intersect_plane(p1, p2):
   a = sp.Plane(sp.Point3D(p1[0]), sp.Point3D(p1[1]), sp.Point3D(p1[2]))

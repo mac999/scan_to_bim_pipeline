@@ -130,9 +130,15 @@ bool isMatchFile(string fname, string name)
 void getFileNames(string pathname, vector<string>& filenames)
 {
 	path p(pathname);
-	std::string fname = p.filename().c_str();
+	std::string fname = p.filename().string();	// use .string() instead of .c_str() for MSVC(wchar_t) portability
 	std::string ext = p.extension().string();
-	std::string dir = p.parent_path().c_str();
+	std::string dir = p.parent_path().string();
+
+	if(boost::filesystem::is_directory(dir) == false)
+	{
+		std::cout << "input folder doesn't exist: " << dir << std::endl;
+		return;
+	}
 
 	boost::filesystem::directory_iterator i(dir), end;
 	for (; i != end; ++i)
@@ -141,24 +147,26 @@ void getFileNames(string pathname, vector<string>& filenames)
 		if(curfile.extension() != ext)
 			continue;
 
-		std::string fname2 = curfile.filename().c_str();
+		std::string fname2 = curfile.filename().string();
 		if(isMatchFile(fname, fname2) == false)
 			continue;
 
-		std::string name = curfile.c_str();
+		std::string name = curfile.string();
 		filenames.push_back(name);
 	}
 }
 
 int get_file_index(std::string fname)
 {
-  path p(fname);
-	std::string name = p.filename().c_str();
+	path p(fname);
+	std::string name = p.filename().string();
 	std::string ext = p.extension().string();
 
 	std::size_t found = name.rfind("_@");
-	std::string num = name.substr(found + 2, name.length() - ext.length() - found - 1);
-	int index = atoi(num.c_str());	
+	if(found == std::string::npos)
+		return 0;
+	std::string num = name.substr(found + 2, name.length() - ext.length() - found - 2);
+	int index = atoi(num.c_str());
 	return index;
 }
 
@@ -187,7 +195,11 @@ int main(int argc, char** argv)
 	  	std::cout << "input file: " << fname << std::endl;
 
 		index = get_file_index(fname);
-		reader.read (*it, *cloud);
+		if(reader.read (*it, *cloud) < 0)
+		{
+			std::cout << "failed to read " << fname << std::endl;
+			continue;
+		}
 
 		pcl::ConcaveHull<pcl::PointXYZ> concave;
 		pcl::ConvexHull<pcl::PointXYZ> convex;
@@ -197,13 +209,11 @@ int main(int argc, char** argv)
 		{
 			concave.setInputCloud (cloud);
 			concave.setAlpha (alpha);
-			concave.reconstruct(*cloud_hull);
 			concave.reconstruct(*cloud_hull, polygons);
 		}
 		else //if(hulltype.compare("cv") == 0)
 		{
 			convex.setInputCloud (cloud);
-			convex.reconstruct(*cloud_hull);
 			convex.reconstruct(*cloud_hull, polygons);
 		}
 

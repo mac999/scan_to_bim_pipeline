@@ -1,14 +1,14 @@
 # Scan to BIM project 
-This project is Scan to BIM pipieline to convert 3D scan data (point cloud data) to BIM objects. The conventional process of converting 3D scan data into BIM models is often inefficient, requiring significant time and manual labor. This project was initiated to automate this process and maximize efficiency. I propose a flexible pipeline that utilizes a proprietary JSON-based script called SBDL (Scan to BIM Description Language). This allows users to dynamically define and execute processing steps, aiming to automate the entire workflow—from point cloud noise removal and object classification to geometry extraction and final BIM object generation. This project don't support scan to BIM about all use cases, so you need to align them to algorithm for each stages. This includes general use cases in scan to BIM for the research purpose. If you have specific purpurse, the customization of Scan to BIM pipeline will be needed. Open source doesn't evolve on its own. If you want to contribute, fork and PR.
+This project is a Scan to BIM pipeline that converts 3D scan data (point cloud data) into BIM objects. The conventional process of converting 3D scan data into BIM models is often inefficient, requiring significant time and manual labor. This project was initiated to automate this process and maximize efficiency. It proposes a flexible pipeline that uses a proprietary JSON-based script called SBDL (Scan to BIM Description Language). This allows users to dynamically define and execute processing steps, aiming to automate the entire workflow — from point cloud noise removal and object classification to geometry extraction and final BIM object generation. This project does not cover every Scan to BIM use case, so you may need to adapt the algorithms in each stage to your data. It includes general Scan to BIM use cases for research purposes; for a specific purpose, customization of the pipeline will be needed. Open source doesn't evolve on its own. If you want to contribute, fork and PR.
 
 # description
-Scan to BIM research project has purpose like below.</br>
-In reference, you can use [scan to model program (SMP)](https://github.com/mac999/scan_to_model_pipeline.git), simple 3D point cloud to model pipeline version and use Lightweight 3D Point Cloud Segmentation Model [PointEdgeSegNet](https://github.com/mac999/point_edge_seg_net) for large-scale point cloud segmentation.
+The Scan to BIM research project has the following goals.</br>
+For reference, you can use the [scan to model program (SMP)](https://github.com/mac999/scan_to_model_pipeline.git), a simple 3D point cloud to model pipeline, and the lightweight 3D point cloud segmentation model [PointEdgeSegNet](https://github.com/mac999/point_edge_seg_net) for large-scale point cloud segmentation.
 </br>
-1. 3D point cloud processsing pipeline implementation dynamically using simple SBDL(Scan to BIM Description Language. JSON format).</br>
-2. Classification of outdoor building objects such as wall (facade), road etc. </br> 
-3. Extraction geometry information from classification.</br>
-4. Binding BIM object with geometry information and property set.</br>
+1. Dynamic implementation of a 3D point cloud processing pipeline using simple SBDL (Scan to BIM Description Language, JSON format).</br>
+2. Classification of outdoor building objects such as walls (facades), roads, etc.</br> 
+3. Extraction of geometry information from the classification results.</br>
+4. Binding BIM objects with geometry information and property sets.</br>
 </br>
 <p align="center">
 <img height="200" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept1.JPG"/></BR><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/concept2.JPG"/><img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/ifc_building_facade.jpg"/></br>
@@ -19,56 +19,60 @@ In reference, you can use [scan to model program (SMP)](https://github.com/mac99
 
 # version history
 v0.1</br>
-> 2022.11, Scan to BIM pipeline framework released. Simple SBDL was developed considering geometry computation algorithms to extract outdoor facade object, deep learning, docker based component etc. 
+> 2022.11, Scan to BIM pipeline framework released. Simple SBDL was developed considering geometry computation algorithms to extract outdoor facade objects, deep learning, docker-based components, etc. 
 
 v0.2</br>
-> 2023.7, Docker image support. pipeline revision for multiple input files processing. refactoring.</br>
-> 2023.8, [Data augumentation tool](https://github.com/mac999/pcd_augmentation)</br>
-> 2023.9. [LiDAR simulation tool](https://github.com/mac999/simulate_LiDAR)</br>
-> 2023.10. [3D scan data quality checker tool](https://github.com/mac999/check_scan_quality).</br>
-> 2024.2. Update pcd_to_DTM, DTM_to_geo module to fix issue, add options such as "active", "log_view", "height_building_offset", "height_ground_offest", "max_building_height".</br>
+> 2023.7, Docker image support. Pipeline revision for processing multiple input files. Refactoring.</br>
+> 2023.8, [Data augmentation tool](https://github.com/mac999/pcd_augmentation)</br>
+> 2023.9, [LiDAR simulation tool](https://github.com/mac999/simulate_LiDAR)</br>
+> 2023.10, [3D scan data quality checker tool](https://github.com/mac999/check_scan_quality)</br>
+> 2024.2, Updated pcd_to_DTM and DTM_to_geo modules to fix issues, and added options such as "active", "log_view", "height_building_offset", "height_ground_offest", "max_building_height".</br>
 
-# furture update plan
+v0.2.1</br>
+> 2026.7, Python 3.11 compatibility (removed deprecated/unavailable modules such as telnetlib and readline, Shapely 2.x support, NumPy 1.24+ support). C++ build modernization using find_package(PCL) with cross-platform fixes. Bug fixes in elevation sampling, object classification height axis, and point density computation.</br>
+
+# future update plan
 v0.3</br>
-> documentation to use SBDL.</br>
-> simple MLOps codes for outdoor object train.</br>
+> Documentation for SBDL usage.</br>
+> Simple MLOps codes for outdoor object training.</br>
 </br>
 
 v0.4</br>
-> SBDL enhancement to supporting VFP(Visual Flow Programming) or LLM(Large Language Model. ex. ChatGPT).</br>
-> Update indoor Object Mapping support.</br>
+> SBDL enhancement supporting VFP (Visual Flow Programming) or LLM (Large Language Model, e.g. ChatGPT).</br>
+> Indoor object mapping support update.</br>
 > MLOps support.</br>
-> Simple Scan Data Processing App using Scan to BIM application.</br>
-> <p>1) deep learing based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using revit plugin. 5) 3D data argumentation. 6) LiDAR simuation 7) 3D PCD quality check</p>
+> Simple scan data processing app using the Scan to BIM pipeline.</br>
+> <p>1) deep learning based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using a Revit plugin. 5) 3D data augmentation. 6) LiDAR simulation. 7) 3D PCD quality check.</p>
 > <p style="text-align: center;"><img height="200" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_ml.JPG"/><img height="200" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/indoor_perform1.JPG"/></p>
 
 v0.5</br>
-> update PCD to DTM, DTM to Geometry, Geometry to BIM object source files.</br>
+> Update PCD to DTM, DTM to Geometry, and Geometry to BIM object source files.</br>
 
 # setup development environment & packages 
-1. install python, pip</br>
-https://phoenixnap.com/kb/how-to-install-python-3-ubuntu</br>
+Python 3.11 is supported (3.9–3.11 recommended).
+1. install python and pip</br>
+https://www.python.org/downloads/</br>
 2. install cmake</br>
-https://www.cyberithub.com/how-to-install-cmake-on-ubuntu-20-04-lts-focal-fossa/</br>
-3. install [cuda](https://developer.nvidia.com/cuda-toolkit-archive), [tensorflow](https://www.tensorflow.org/install?hl=ko), [pytorch](https://pytorch.org/get-started/locally/)</br>
+https://cmake.org/download/</br>
+3. install [cuda](https://developer.nvidia.com/cuda-toolkit-archive) and [pytorch](https://pytorch.org/get-started/locally/) (only required for the deep learning segmentation module)</br>
 4. install gdal</br>
-https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html</br>
+https://gdal.org/download.html (with conda: `conda install -c conda-forge gdal`)</br>
 5. install pdal</br>
-https://installati.one/install-pdal-ubuntu-20-04/</br>
-In terminal, run 'pdal' command. If there is error 'libgdal.so.29: cannot open shared object file', run the below command to make linked file name.</br>
+https://pdal.io/en/latest/download.html (with conda: `conda install -c conda-forge pdal`)</br>
+In a terminal, run the 'pdal' command. On Ubuntu, if you see the error 'libgdal.so.29: cannot open shared object file', create a symbolic link:</br>
 sudo ln -s libgdal.so.30 libgdal.so.29</br>
-if there is error in prebuild pdal, download, build and install pdal source files of github 
+If the prebuilt pdal has issues, download, build and install pdal from the source on GitHub:
 https://github.com/PDAL/PDAL</br>
 6. install ifcopenshell</br>
-https://pypi.org/project/ifcopenshell/0.7.0.230418/</br>
-https://blenderbim.org/docs-python/ifcopenshell-python/installation.html</br>
-7. build docker image</br>
+https://pypi.org/project/ifcopenshell/ (`pip install ifcopenshell`)</br>
+https://docs.ifcopenshell.org/ifcopenshell-python/installation.html</br>
+7. build the docker image (optional, for the deep learning segmentation module)</br>
 cd docker</br>
 cd build_docker_open3d</br>
 bash build_docker.sh</br>
 
 # PCL installation
-In addition, if you use PCL, run the below commands for installing package or 'sh [build_pcl.sh](https://github.com/mac999/scan_to_bim_pipeline/blob/main/build_pcl.sh)'.</br>
+The C++ modules (pcd_density, pcd_to_seg, seg_to_geo) require PCL. Install the packages below or run 'sh [build_pcl.sh](https://github.com/mac999/scan_to_bim_pipeline/blob/main/build_pcl.sh)'.</br>
 sudo apt-get install build-essential g++ python3-dev autotools-dev libicu-dev libbz2-dev libboost-all-dev</br>
 sudo apt install libeigen3-dev</br>
 dpkg -L libeigen3-dev</br>
@@ -78,37 +82,34 @@ sudo apt-get install libgl1-mesa-dev</br>
 sudo apt install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools</br>
 sudo apt install clang-format</br>
 sudo apt-get install libusb-1.0-0-dev</br>
-sudo apt install libvtk9.1</br></br>
+sudo apt install libvtk9-dev</br></br>
 git clone https://github.com/PointCloudLibrary/pcl pcl-trunk</br>
 cd pcl-trunk && mkdir build && cd build</br>
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..</br>
 make -j2</br>
 sudo make -j2 install</br>
 
-In detail, refer to </br>
+For details, refer to</br>
 https://github.com/PointCloudLibrary/pcl</br>
 https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html</br>
 
 # build & installation
-Modify the below PCL_ROOT(PCL library path), VTK_INC(VTK include path), USR_LIB paths in [CMakeLists.txt](https://github.com/mac999/scan_to_bim_pipeline/blob/main/CMakeLists.txt) properly. In reference, PCL-1.13 has an memory error (handmade_aligned_free) related to eigen library(2023/4/10).</br>
-set(PCL_ROOT "/home/ktw/projects/pcl-1.12")</br>
-set(VTK_INC "/usr/include/vtk-7.1")</br>
-set(USR_LIB "/usr/lib/x86_64-linux-gnu")</br>
+The build uses find_package(PCL) in [CMakeLists.txt](https://github.com/mac999/scan_to_bim_pipeline/blob/main/CMakeLists.txt), so an installed PCL is found automatically. If PCL was built from source without installing, pass its build directory with `-DPCL_DIR=/path/to/pcl/build`. For reference, PCL-1.13 has a memory error (handmade_aligned_free) related to the eigen library (2023/4/10); PCL-1.12 is recommended.</br>
 </br>
-In terminal, input the below commands. </br>
+In a terminal, enter the commands below.</br>
 git clone https://github.com/mac999/scan_to_bim_pipeline</br>
 cd scan_to_bim_pipeline</br>
-pip -r install requirements.txt</br>
-sudo apt install clang</br>
+pip install -r requirements.txt</br>
 mkdir build</br>
+cd build</br>
 cmake ..</br>
 make</br>
 </br>
-If there are depandency errors in requirements.txt, use requirements_simple.txt.
+If there are dependency errors with requirements.txt, use requirements_simple.txt.
 
 # run
-Before run, install requirements_simple.txt(or requirements.txt) including the above packages.</br>
-1. modify /pipeline/config.json considering your input, output folder path. In reference, root foler name is scan_to_bim_pipeline which you downloaded and installed from github.</br>
+Before running, install requirements_simple.txt (or requirements.txt) including the packages above.</br>
+1. Modify /pipeline/config.json considering your input and output folder paths. For reference, the root folder name is scan_to_bim_pipeline, which you downloaded and installed from GitHub.</br>
 ```
 {
     "app": "pcd_pipeline",
@@ -119,19 +120,19 @@ Before run, install requirements_simple.txt(or requirements.txt) including the a
     "debug_gui": false
 }
 ```
-2. download input sample files and copy them into ./input folder. refer to [sample dataset](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd).</br>
-3. run app.py like below.</br>
+2. Download the input sample files and copy them into the ./input folder. Refer to the [sample dataset](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd).</br>
+3. Run app.py as below.</br>
 python ./pipeline/app.py</br>
 <img height="150" src="https://github.com/mac999/scan_to_bim_pipeline/blob/main/doc/result_outdoor.PNG"/></br>
-4. Or design pipeline by using SBDL(scan to bim description language) formatted by JSON like below.</br>
+4. Or design a pipeline using SBDL (Scan to BIM Description Language) formatted as JSON like below.</br>
   pipeline.[name]={stage*}</br>
   stage={module_type, parameters}</br>
   parameters={name, value}*</br>
   module_type={python program | docker image | binary executable program}</br>
-  * parameters should be defined in module before usage.</br>
+  * parameters should be defined in the module before usage.</br>
   condition={"in_stage_return", "out_stage_return"}</br></br>
 
-In scan to BIM pipeline using SBDL example, </br>
+An example Scan to BIM pipeline using SBDL:</br>
 pipeline.indoor_obb_extraction = data_to_format > pcd_to_seg > pcd_to_clean > seg_to_geo</br>
 pipeline.indoor_obb_extraction(*.las) > *.geojson</br>
 </br>
@@ -169,10 +170,10 @@ cd pipeline</br>
 python app.py</br>
 
 # sample dataset
-Download dataset and copy to /input folder.</br> 
+Download a dataset and copy it to the /input folder.</br> 
 3D point cloud sample file [download](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd)</br>
 National LiDAR map [National Map](https://apps.nationalmap.gov/lidar-explorer/#/)</br>
-Open Topolography [LiDAR map](https://portal.opentopography.org/lidarDataset?opentopoID=OTLAS.052010.26910.1&minX=-122.26765250953395&minY=38.098874920746226&maxX=-122.25515556338722&maxY=38.10795230920854)</br>
+Open Topography [LiDAR map](https://portal.opentopography.org/lidarDataset?opentopoID=OTLAS.052010.26910.1&minX=-122.26765250953395&minY=38.098874920746226&maxX=-122.25515556338722&maxY=38.10795230920854)</br>
 Pix4D dataset [Download](https://support.pix4d.com/hc/en-us/articles/360000235126-Example-projects-real-photogrammetry-data#OPF3)</br>
 LAS map files [arcgis map link](https://www.arcgis.com/apps/webappviewer/index.html?id=8a7ca254395f424a8bd4c1c8c7a21acb)</br>
 LiDAR files [USGS gov](https://www.usgs.gov/faqs/what-lidar-data-and-where-can-i-download-it)</br>
@@ -184,15 +185,15 @@ SBDL concept diagram and [UML](https://github.com/mac999/scan_to_bim_pipeline/bl
 
 # license
 MIT license.</br></br>
-Acknowledge.</br>
+Acknowledgment.</br>
 > Scan To BIM Technology Development 3D Urban Building Model Process Automation, 2022</br>
 > 3D vision & AI based Indoor object Scan to BIM pipeline for building facility management, 2023</br>
 Funded by KICT</br></br>
 Organization Roles</br>
 > KICT: Scan to BIM pipeline architecture design, algorithm programming, test, code management</br></br>
-Specially, Thanks for contribution like below</br>
-> IUPUI (Prof. Koo Dan, Prof. Kwonsik Song), UNF (Prof. Jonghoon Kim: usecase, code, policy survey</br>
-> Purdue University (Prof. Kyubyung Kang): deep learning train, dataset collection, labeling, analysis</br>
+Special thanks for contributions as below</br>
+> IUPUI (Prof. Koo Dan, Prof. Kwonsik Song), UNF (Prof. Jonghoon Kim): use case, code, policy survey</br>
+> Purdue University (Prof. Kyubyung Kang): deep learning training, dataset collection, labeling, analysis</br>
 > Stony Brook University (Prof. Jongsung Choi): data collection using SLAM, labeling, analysis</br>
 </br>
 Kang, TW., Patil, S., Kang, K., Koo, D. and Kim, J., 2020. Rule-based scan-to-BIM mapping pipeline in the plumbing system. Applied Sciences, 10(21), p.7422. https://www.mdpi.com/2076-3417/10/21/7422</br>

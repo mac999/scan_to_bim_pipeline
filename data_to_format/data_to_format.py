@@ -1,4 +1,4 @@
-import sys, os, io, json, subprocess, argparse, readline, glob, re
+import sys, os, json, subprocess, argparse, glob
 lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
 sys.path.append(lib_path)    
 import scan_to_bim_lib

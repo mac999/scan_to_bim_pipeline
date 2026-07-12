@@ -4,15 +4,9 @@
 # desc:  
 
 import os, sys, json, glob
-import trimesh
 import open3d as o3d
-import argparse, readline
+import argparse
 import numpy as np
-import sympy as sp
-import matplotlib.pyplot as plt
-from telnetlib import theNULL
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
 sys.path.append(lib_path)    
 import scan_to_bim_lib

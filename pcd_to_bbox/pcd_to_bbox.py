@@ -12,7 +12,7 @@ def load_pcd(fname):
     pcd_data = np.loadtxt(fname, delimiter=' ')
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(pcd_data[:,0:3]) # XYZ points
-    pcd_colors = pcd_data[:,3:6] / 256.
+    pcd_colors = pcd_data[:,3:6] / 255.
     pcd.colors = o3d.utility.Vector3dVector(pcd_colors)
     return pcd
 
@@ -61,11 +61,12 @@ def main(args):
                 continue
             fname = os.path.basename(input_fname)
             label, ext = os.path.splitext(fname)
+            office = input_fname
             base_folder_len = len(args.input)
             if base_folder_len:
                 office = input_fname[base_folder_len:]
-            tag_index = office.find('\\')
-            if tag_index:
+            tag_index = office.find(os.sep)
+            if tag_index >= 0:    # find() returns -1 when not found
                 office = office[:tag_index]
 
             pcd = load_pcd(input_fname)

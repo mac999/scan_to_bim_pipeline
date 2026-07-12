@@ -5,6 +5,7 @@
 // todo = kNN, area density, volume density
 // 
 #include <stdio.h>
+#include <cmath>
 #include <iostream>
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/io/pcd_io.h>
@@ -24,25 +25,30 @@ float G(float x, float sigma)
   return std::exp (- (x*x)/(2*sigma*sigma));
 }
 
-float calcVolumeDensity(std::vector<float>& dists)
+float calcVolumeDensity(std::vector<float>& sqr_dists)
 {
-  int N = dists.size();
-  if(N == 0)
-    return 0.0;
-  
   // the number of neighbors N (only available in 'Precise' mode)
   // surface density: number of neighbors divided by the neighborhood surface = N / (Pi.R2)
   // volume density: number of neighbors divided by the neighborhood volume = N / (4/3.Pi.R3)
+  // note. pcl::KdTreeFLANN::nearestKSearch() returns SQUARED distances and includes the query point itself(distance 0).
   float radius = 0.0;
-  for(std::vector<float>::iterator i = dists.begin(); i != dists.end(); i++)
+  int N = 0;
+  for(std::vector<float>::iterator i = sqr_dists.begin(); i != sqr_dists.end(); i++)
   {
-    float d = *i;
+    float d = std::sqrt(*i);
+    if(d <= 0.0f)   // skip the query point itself
+      continue;
     radius = radius + d;
+    N++;
   }
+  if(N == 0)
+    return 0.0;
   radius /= (float)N;
+  if(radius <= 0.0f)
+    return 0.0;
 
   // density 2D
-  float density = float(N) / (M_PI * pow(radius, 2.0)); // 1 / circle area 
+  float density = float(N) / (M_PI * pow(radius, 2.0)); // 1 / circle area
   return density;
 
   /* https://www.mathworks.com/matlabcentral/answers/563603-how-to-compute-the-density-of-a-3d-point-cloud
@@ -57,14 +63,29 @@ float calcVolumeDensity(std::vector<float>& dists)
 
 int main (int argc, char *argv[])
 {
+  if (argc < 4)
+  {
+    std::cout << "Usage: " << argv[0] << " input.pcd output.pcd kNN_count" << std::endl;
+    return -1;
+  }
+
   std::string incloudfile = argv[1];
   std::string outcloudfile = argv[2];
   int N = atoi(argv[3]);
+  if (N <= 0)
+  {
+    std::cout << "kNN_count should be a positive number." << std::endl;
+    return -1;
+  }
   // float queryRadius = 1.0;
 
   // Load cloud
   pcl::PointCloud<PointT>::Ptr cloud (new pcl::PointCloud<PointT>);
-  pcl::io::loadPCDFile (incloudfile.c_str (), *cloud);
+  if (pcl::io::loadPCDFile (incloudfile.c_str (), *cloud) < 0)
+  {
+    std::cout << "failed to read " << incloudfile << std::endl;
+    return -1;
+  }
   int pnumber = (int)cloud->size ();
 
   // Output Cloud = Input Cloud

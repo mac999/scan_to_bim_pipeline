@@ -122,8 +122,12 @@ int main(int argc, char** argv)
 	// Read in the cloud data
 	pcl::PCDReader reader;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
-	reader.read (input_filename_, *cloud);
-	
+	if (reader.read (input_filename_, *cloud) < 0 || cloud->points.empty ())
+	{
+		std::cout << "failed to read " << input_filename_ << std::endl;
+		return -1;
+	}
+
 	// Create the segmentation object for the planar model and set all the parameters
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
 	pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
