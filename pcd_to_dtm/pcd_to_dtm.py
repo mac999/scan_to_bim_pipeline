@@ -12,6 +12,7 @@ def main():
     parser.add_argument('--classification', type=str, default='building', required=True)
 
     args = parser.parse_args() 
+    print(f'classification={args.classification} is not applied. the raster is built from all points')
 
     files = glob.glob(args.input)
     print(files)
