@@ -42,12 +42,12 @@ def remove_outlier(fname, args):
     if args.uniform_down_sample != None and args.uniform_down_sample > 0:
         cl = cl.uniform_down_sample(every_k_points = args.uniform_down_sample)
 
-    if args.stat_neighbors != None and args.stat_std_ratio != None:
+    if args.stat_neighbors != None and args.stat_std_ratio != None and args.stat_neighbors > 0:   # 0 disables the filter
         cl, ind = cl.remove_statistical_outlier(nb_neighbors = args.stat_neighbors,
                                                             std_ratio = args.stat_std_ratio)
         # display_inlier_outlier(cl, ind)
 
-    if args.nb_radius_points != None :
+    if args.nb_radius_points != None and args.nb_radius_points > 0:   # 0 disables the filter
         cl, ind = cl.remove_radius_outlier(nb_points = args.nb_radius_points, radius = args.nb_radius)
         # display_inlier_outlier(cl, ind)
 
