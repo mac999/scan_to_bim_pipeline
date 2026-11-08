@@ -177,7 +177,7 @@ def geo_to_obj(infile, outfilename):
     poly = np.asarray(pcd.points)
     label, params = get_obj_type(poly)    
 
-    bound2d = get_alpha_shape(poly, 0) # 0.15) # 0.2)
+    bound2d = get_alpha_shape(poly, args.alpha)
     bound3d = np.asarray(bound2d)
     obb = o3d.geometry.OrientedBoundingBox.create_from_points(pcd.points)
     box3d = obb.get_box_points()
@@ -227,3 +227,4 @@ def str2bool(value):    # argparse's type=bool treats any non-empty string like 
     return str(value).strip().lower() in ('true', '1', 'yes', 'on')
 
     parser.add_argument('--log_view', type=str2bool, default=False, required=False)
+    parser.add_argument('--alpha', type=float, default=0.0, required=False)   # alpha shape of the segment boundary. 0 gives the convex hull
