@@ -220,8 +220,8 @@ def intersect_mesh(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default="/home/ktw/projects/pcd_pl/output/punktsky/dtm_to_geo/dtm_to_geo", type=str, required=False)
-    parser.add_argument('--output', default="/home/ktw/projects/pcd_pl/output/punktsky/geo_to_bim_outdoor/geo_to_bim_outdoor", type=str, required=False)
+    parser.add_argument('--input', type=str, required=True)
+    parser.add_argument('--output', type=str, required=True)
     parser.add_argument('--link_pset', default="link_propertyset.json", type=str, required=False)
     parser.add_argument('--base_point', default="[724840.0, 6181000.0]", type=str, required=False)   
     args = parser.parse_args()
