@@ -79,10 +79,12 @@ def get_alpha_shape(input_poly, ratio):
     alpha_type = str(type(alpha_shape))
     print(alpha_type)
     if alpha_type.find('Trimesh') > 0:  # if 3D mesh model
-        fig = plt.figure()
-        ax = plt.axes(projection='3d')
-        ax.plot_trisurf(*zip(*alpha_shape.vertices), triangles=alpha_shape.faces)
-        plt.show()
+        poly = [list(v) for v in alpha_shape.vertices]
+        if args is not None and args.log_view:
+            fig = plt.figure()
+            ax = plt.axes(projection='3d')
+            ax.plot_trisurf(*zip(*alpha_shape.vertices), triangles=alpha_shape.faces)
+            plt.show()
     elif alpha_type.find('MultiPolygon') > 0:  # if 2D multi polygon model
         multipoly = list(alpha_shape.geoms)    # fixed for shapely 2.0.0
         poly = None
@@ -221,3 +223,7 @@ def main():
 if __name__ == '__main__':
     main()
 
+def str2bool(value):    # argparse's type=bool treats any non-empty string like 'false' as True
+    return str(value).strip().lower() in ('true', '1', 'yes', 'on')
+
+    parser.add_argument('--log_view', type=str2bool, default=False, required=False)
