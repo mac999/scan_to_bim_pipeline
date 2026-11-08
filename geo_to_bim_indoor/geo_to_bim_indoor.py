@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import open3d as o3d
+from scipy.spatial import ConvexHull
 
 lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
 sys.path.append(lib_path)    
@@ -163,6 +164,56 @@ def show_data(shp, plane3d, obb):
     plt.show()
     '''
 
+def get_box_mesh(obb, min_thickness):
+    # a segment projected on its plane gives a flat box. give it a thickness so the element is a solid
+    extent = np.maximum(np.asarray(obb.extent), min_thickness)
+    box = o3d.geometry.OrientedBoundingBox(obb.center, obb.R, extent)
+    vertices = np.asarray(box.get_box_points())
+    faces = ConvexHull(vertices).simplices
+    return [tuple(float(c) for c in v) for v in vertices], [tuple(int(i) for i in f) for f in faces]
+
+def assign_product(usecase, ifc, product, **kwargs):
+    # ifcopenshell 0.8 takes a list of products, 0.7 a single product
+    from ifcopenshell.api import run
+    try:
+        return run(usecase, ifc, products=[product], **kwargs)
+    except TypeError:
+        return run(usecase, ifc, product=product, **kwargs)
+
+IFC_CLASS = {'wall': ('IfcWall', None), 'floor': ('IfcSlab', 'FLOOR'), 'ceiling': ('IfcCovering', 'CEILING')}
+
+def save_ifc(fname, labels, obbs):
+    import ifcopenshell, ifcopenshell.api
+    run = ifcopenshell.api.run
+
+    ifc = run("project.create_file")
+    project = run("root.create_entity", ifc, ifc_class="IfcProject", name=args.project_name)
+    run("unit.assign_unit", ifc, length={"is_metric": True, "raw": "METERS"})
+    model = run("context.add_context", ifc, context_type="Model")
+    body = run("context.add_context", ifc, context_type="Model", context_identifier="Body", target_view="MODEL_VIEW", parent=model)
+
+    site = run("root.create_entity", ifc, ifc_class="IfcSite", name=args.site_name)
+    building = run("root.create_entity", ifc, ifc_class="IfcBuilding", name=args.building_name)
+    storey = run("root.create_entity", ifc, ifc_class="IfcBuildingStorey", name=args.storey_name)
+    assign_product("aggregate.assign_object", ifc, product=site, relating_object=project)
+    assign_product("aggregate.assign_object", ifc, product=building, relating_object=site)
+    assign_product("aggregate.assign_object", ifc, product=storey, relating_object=building)
+
+    count = 0
+    for index, (label, obb) in enumerate(zip(labels, obbs)):
+        if label not in IFC_CLASS:
+            continue
+        ifc_class, predefined_type = IFC_CLASS[label]
+        element = run("root.create_entity", ifc, ifc_class=ifc_class, name=f'{label} {index}', predefined_type=predefined_type)
+        vertices, faces = get_box_mesh(obb, args.element_thickness)
+        representation = run("geometry.add_mesh_representation", ifc, context=body, vertices=[vertices], faces=[faces])
+        run("geometry.assign_representation", ifc, product=element, representation=representation)
+        assign_product("spatial.assign_container", ifc, product=element, relating_structure=storey)
+        count += 1
+
+    ifc.write(fname)
+    print(f'{count} elements saved to {fname}')
+
 def geo_to_obj(infile, outfilename):
     # read file
     ''' poly = read_data(infile)
@@ -195,6 +246,9 @@ def geo_to_obj(infile, outfilename):
 
     return label, plane3d, obb
 
+def str2bool(value):    # argparse's type=bool treats any non-empty string like 'false' as True
+    return str(value).strip().lower() in ('true', '1', 'yes', 'on')
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str, required=True)
@@ -203,6 +257,14 @@ def main():
     parser.add_argument("--wall_max_angle", type=float, default=150.0, required=True)
     parser.add_argument("--wall_height", type=float, default=3.5, required=True)
     parser.add_argument("--floor_max_height", type=float, default=0.5, required=True)
+    parser.add_argument('--log_view', type=str2bool, default=False, required=False)
+    parser.add_argument('--alpha', type=float, default=0.0, required=False)   # alpha shape of the segment boundary. 0 gives the convex hull
+    parser.add_argument('--output_ifc', type=str2bool, default=True, required=False)
+    parser.add_argument('--element_thickness', type=float, default=0.2, required=False)   # minimum thickness of a wall, slab or covering in meters
+    parser.add_argument('--project_name', type=str, default='Scan to BIM project', required=False)
+    parser.add_argument('--site_name', type=str, default='My Site', required=False)
+    parser.add_argument('--building_name', type=str, default='My Building', required=False)
+    parser.add_argument('--storey_name', type=str, default='My Storey', required=False)
 
     global args
     args = parser.parse_args() # ["--input", "/home/ktw/Projects/pcd_pl/output/seg_to_geo", "--output", "/home/ktw/Projects/pcd_pl/output/geo_to_obj"])
@@ -220,11 +282,9 @@ def main():
         plane3ds.append(plane3d)
         obbs.append(obb)
 
+    if args.output_ifc and len(obbs):
+        save_ifc(args.output + '.ifc', labels, obbs)
+
 if __name__ == '__main__':
     main()
 
-def str2bool(value):    # argparse's type=bool treats any non-empty string like 'false' as True
-    return str(value).strip().lower() in ('true', '1', 'yes', 'on')
-
-    parser.add_argument('--log_view', type=str2bool, default=False, required=False)
-    parser.add_argument('--alpha', type=float, default=0.0, required=False)   # alpha shape of the segment boundary. 0 gives the convex hull
