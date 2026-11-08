@@ -1,4 +1,30 @@
 {
+    "pipeline.indoor_rule": [
+        {
+            "type": "pcd_to_seg",
+            "iteration": "1000",
+            "threshold": "0.1",
+            "projection": "true",
+            "min_points_ratio": "0.2"
+        },
+        {
+            "type": "pcd_to_clean",
+            "voxel_down_size": "0.0",
+            "nb_radius_points": "50",
+            "nb_radius": "0.1"
+        },
+        {
+            "type": "seg_to_geo",
+            "alpha": "0.15"
+        },
+        {
+            "type": "geo_to_bim_indoor",
+            "wall_min_angle": 30.0,
+            "wall_max_angle": 150.0,
+            "wall_height": 3.0,
+            "floor_max_height": 0.5
+        }
+    ],
     "pipeline.docker_ML_process": [
         {
             "type": "pcd_to_seg_ml", 
