@@ -9,6 +9,13 @@ from math import sin, cos
 
 run = ifcopenshell.api.run
 
+def assign_product(usecase, ifc, product, **kwargs):
+    # ifcopenshell 0.8 takes a list of products, 0.7 a single product
+    try:
+        return run(usecase, ifc, products=[product], **kwargs)
+    except TypeError:
+        return run(usecase, ifc, product=product, **kwargs)
+
 def create_basic_wall(self):
     length = self.convert_si_to_unit(self.settings["length"])
     thickness = self.convert_si_to_unit(self.settings["thickness"])
@@ -59,16 +66,16 @@ def create_building(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0):
     storey = run("root.create_entity", model, ifc_class="IfcBuildingStorey", name="Ground Floor")
 
     # the site is our top level location, assign it to the project. 
-    run("aggregate.assign_object", model, relating_object=project, product=site)
-    run("aggregate.assign_object", model, relating_object=site, product=building)
-    run("aggregate.assign_object", model, relating_object=building, product=storey)
+    assign_product("aggregate.assign_object", model, relating_object=project, product=site)
+    assign_product("aggregate.assign_object", model, relating_object=site, product=building)
+    assign_product("aggregate.assign_object", model, relating_object=building, product=storey)
 
     # Create wall
     wall = run("root.create_entity", model, ifc_class="IfcWall")
     representation = run("geometry.add_wall_representation", model, context=body, length=5, height=3, thickness=0.2)    # Add a new wall-like body geometry, 5 meters long, 3 meters high, and 200mm thick
     run("geometry.assign_representation", model, product=wall, representation=representation)   # Assign our new body geometry back to our wall
 
-    run("spatial.assign_container", model, relating_structure=storey, product=wall) # Place our wall in the ground floor
+    assign_product("spatial.assign_container", model, relating_structure=storey, product=wall) # Place our wall in the ground floor
 
     model.write("model.ifc")
     pass
@@ -156,17 +163,19 @@ def geo_to_bim(in_fname, out_fname, bx, by):
 
         run("unit.assign_unit", ifc, length={"is_metric": True, "raw": "METERS"})
 
-        # mycontext = run("context.add_context", ifc)
+        # a body subcontext under a model context. georeferencing attaches to the model context
+        model_context = run("context.add_context", ifc, context_type="Model")
         subcontext = run(
             "context.add_context",
             ifc,
-            # context="Model",
-            # subcontext="Body",
+            context_type="Model",
+            context_identifier="Body",
             target_view="MODEL_VIEW",
+            parent=model_context,
         )
 
         site = run("root.create_entity", ifc, ifc_class="IfcSite", name="My Site")
-        run("aggregate.assign_object", ifc, product=site, relating_object=project)
+        assign_product("aggregate.assign_object", ifc, product=site, relating_object=project)
 
         for index, row in df.iterrows():
             polygon = row['footprint']
@@ -176,15 +185,15 @@ def geo_to_bim(in_fname, out_fname, bx, by):
             elevation = float(row['elevation'])
             
             building = run("root.create_entity", ifc, ifc_class="IfcBuilding", name="My Building")
-            run("aggregate.assign_object", ifc, product=building, relating_object=site)
+            assign_product("aggregate.assign_object", ifc, product=building, relating_object=site)
 
             storey = run("root.create_entity", ifc, ifc_class="IfcBuildingStorey", name="My Storey")
-            run("aggregate.assign_object", ifc, product=storey, relating_object=building)
+            assign_product("aggregate.assign_object", ifc, product=storey, relating_object=building)
 
             pset = {'building_ID': int(row['ID']), 'area': float(row['area']), 'length': float(row['length']), 'elevation': float(row['elevation'])}
             
             solid = create_swept_solid(ifc, subcontext, storey, polygon, pset, bx, by)
-            run("spatial.assign_container", ifc, product=solid, relating_structure=storey)
+            assign_product("spatial.assign_container", ifc, product=solid, relating_structure=storey)
 
             set_object_property(ifc, ownerhistory, solid, pset)
             
