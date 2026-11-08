@@ -17,40 +17,6 @@ For reference, you can use the [scan to model program (SMP)](https://github.com/
 <img height="150" src="./doc/indoor_scan.JPG"/><img height="150" src="./doc/indoor_BIM.PNG"/>
 </p>
 
-# version history
-v0.1</br>
-> 2022.11, Scan to BIM pipeline framework released. Simple SBDL was developed considering geometry computation algorithms to extract outdoor facade objects, deep learning, docker-based components, etc. 
-
-v0.2</br>
-> 2023.7, Docker image support. Pipeline revision for processing multiple input files. Refactoring.</br>
-> 2023.8, [Data augmentation tool](https://github.com/mac999/pcd_augmentation)</br>
-> 2023.9, [LiDAR simulation tool](https://github.com/mac999/simulate_LiDAR)</br>
-> 2023.10, [3D scan data quality checker tool](https://github.com/mac999/check_scan_quality)</br>
-> 2024.2, Updated pcd_to_DTM and DTM_to_geo modules to fix issues, and added options such as "active", "log_view", "height_building_offset", "height_ground_offest", "max_building_height".</br>
-
-v0.2.1</br>
-> 2026.7, Python 3.11 compatibility (removed deprecated/unavailable modules such as telnetlib and readline, Shapely 2.x support, NumPy 1.24+ support). C++ build modernization using find_package(PCL) with cross-platform fixes. Bug fixes in elevation sampling, object classification height axis, and point density computation.</br>
-
-# future update plan
-v0.3</br>
-> Documentation for SBDL usage.</br>
-> Simple MLOps codes for outdoor object training.</br>
-</br>
-
-v0.4</br>
-> SBDL enhancement supporting VFP (Visual Flow Programming) or LLM (Large Language Model, e.g. ChatGPT).</br>
-> Indoor object mapping support update.</br>
-> MLOps support.</br>
-> Simple scan data processing app using the Scan to BIM pipeline.</br>
-> <p>1) deep learning based indoor classification. 2) PCD indoor segmentation. 3) segment to geometry using ML. 4) geometry to BIM using a Revit plugin. 5) 3D data augmentation. 6) LiDAR simulation. 7) 3D PCD quality check.</p>
-> <p style="text-align: center;"><img height="200" src="./doc/indoor_ml.JPG"/><img height="200" src="./doc/indoor_perform1.JPG"/></p>
-
-v0.5</br>
-> Update PCD to DTM, DTM to Geometry, and Geometry to BIM object source files.</br>
-
-v0.6</br>
-> Fix the errors after updating the lasted libraries and algorithms.</br>
-
 # setup development environment & packages 
 Python 3.11 is supported (3.9–3.11 recommended).
 1. install python and pip</br>
@@ -199,9 +165,18 @@ Top 6 Free LiDAR Data Sources [LiDAR files](https://gisgeography.com/top-6-free-
 SBDL concept diagram and [UML](./doc/SAD.uml) architecture.</br>
 <p align="center"><img height="150" src="./doc/uml3.PNG"/><img height="150" src="./doc/uml1.PNG"/><img height="150" src="./doc/uml2.PNG"/></p>
 
-# revision history
-v0.6.1</br>
-> 2026.11, A failed stage now stops its pipeline instead of passing an empty input on. Runs with ifcopenshell 0.8. The outdoor IFC keeps the map coordinates (IfcMapConversion), places buildings on their ground elevation and stores only scan-derived properties. geo_to_bim_indoor writes IfcWall, IfcSlab and IfcCovering. Hard-coded options moved to config.json and stage parameters. pcd_clean was renamed to pcd_to_clean to match its stage type. Added environment.yml and tests.</br>
+# version history
+| version | date | changes |
+|---|---|---|
+| v0.1 | 2022.11 | Pipeline framework and SBDL. Geometry algorithms for outdoor facade objects, deep learning and docker-based stages. |
+| v0.2 | 2023.7 | Docker image support. Pipelines over multiple input files. Refactoring. |
+| | 2023.8 - 2023.10 | Related tools: [data augmentation](https://github.com/mac999/pcd_augmentation), [LiDAR simulation](https://github.com/mac999/simulate_LiDAR), [scan quality checker](https://github.com/mac999/check_scan_quality). |
+| | 2024.2 | pcd_to_dtm and dtm_to_geo fixes. Options active, log_view, height_building_offset, height_ground_offset, max_building_height. |
+| v0.6 | 2026.7 | Python 3.11, Shapely 2 and NumPy 1.24 support. CMake uses find_package(PCL). Fixes in elevation sampling, the height axis of object classification and point density. |
+| v0.6.1 | 2026.11 | A failed stage stops its pipeline. ifcopenshell 0.8 support. Outdoor IFC keeps map coordinates (IfcMapConversion) and ground elevation. Indoor IFC output (IfcWall, IfcSlab, IfcCovering). Options moved to config.json and stage parameters, see [doc/sbdl.md](./doc/sbdl.md). environment.yml and tests. |
+
+Planned: MLOps for outdoor object training, SBDL authoring with visual flow programming or an LLM, deep learning based indoor classification and segmentation, geometry to BIM through a Revit plugin, and a scan data processing app on top of the pipeline.</br>
+<p align="center"><img height="200" src="./doc/indoor_ml.JPG"/><img height="200" src="./doc/indoor_perform1.JPG"/></p>
 
 # license
 MIT license.</br></br>
