@@ -10,6 +10,8 @@ def main():
     parser.add_argument('--pdal_pipeline', type=str, default='pcd_to_dtm_pipeline.json', required=False)   # kept for SBDL compatibility. the pipeline file is written next to the output
     parser.add_argument('--resolution', type=float, default=0.2, required=False)
     parser.add_argument('--classification', type=str, default='building', required=True)
+    parser.add_argument('--transform_matrix', type=str, default='1  0  0  0  0  1  0  0  0  0  1  0  0  0  0  1', required=False)   # 4x4 row major, applied by pdal filters.transformation
+    parser.add_argument('--gdal_output_type', type=str, default='all', required=False)   # pdal writers.gdal output_type: min, max, mean, idw, count, stdev or all
 
     args = parser.parse_args() 
     print(f'classification={args.classification} is not applied. the raster is built from all points')
@@ -29,7 +31,7 @@ def main():
                 infile, 
                 {
                 "type":"filters.transformation",
-                "matrix":"1  0  0  0  0  1  0  0  0  0  1  0  0  0  0  1"
+                "matrix":args.transform_matrix
                 }, 
                 {
                 "type":"writers.las",
@@ -38,7 +40,7 @@ def main():
                 {
                 "filename": outfilename,
                 "gdaldriver":"GTiff",
-                "output_type":"all",
+                "output_type":args.gdal_output_type,
                 "resolution":res,
                 "type": "writers.gdal"
                 }        
