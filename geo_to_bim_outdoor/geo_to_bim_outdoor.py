@@ -1,7 +1,7 @@
 # title: geo_to_bim for scan to BIM
 # created date: 2022.5.10, taewook kang, laputa99999@gmail.com
 # 
-import os, sys, json, glob, numpy, uuid, argparse, trimesh
+import os, sys, re, json, glob, numpy, uuid, argparse, trimesh
 import numpy as np, pandas as pd, matplotlib.pyplot as plt, ifcopenshell
 import ifcopenshell.api
 from math import sin, cos
@@ -133,9 +133,42 @@ def set_object_property(ifc, owner_history, element, pset):
     element_quantity = ifc.createIfcElementQuantity(create_guid(), owner_history, "BaseQuantities", None, None, quantity_values)
     ifc.createIfcRelDefinesByProperties(create_guid(), owner_history, None, None, [element], element_quantity)
         
-def geo_to_bim(in_fname, out_fname, bx, by):
+def get_epsg(projection_file):
+    # the WKT written by dtm_to_geo. the last authority entry names the CRS itself
+    if not os.path.isfile(projection_file):
+        return None
+    with open(projection_file, 'r') as f:
+        wkt = f.read()
+    codes = re.findall(r'(?:AUTHORITY|ID)\["EPSG",\s*"?(\d+)"?\]', wkt)
+    return codes[-1] if codes else None
+
+def add_georeferencing(ifc, epsg, bx, by):
+    name = 'EPSG:' + str(epsg)
+    try:
+        run("georeference.add_georeferencing", ifc, name=name)
+    except TypeError:   # ifcopenshell 0.7 takes no name
+        run("georeference.add_georeferencing", ifc)
+    run("georeference.edit_georeferencing", ifc,
+        projected_crs={"Name": name},
+        coordinate_operation={"Eastings": bx, "Northings": by, "OrthogonalHeight": 0.0})
+
+def get_base_point(df):
+    # lower left corner of all footprints, rounded down to whole meters
+    xs, ys = [], []
+    for footprint in df['footprint']:
+        for x, y in json.loads(footprint.replace('(', '[').replace(')', ']')):
+            xs.append(x)
+            ys.append(y)
+    if len(xs) == 0:
+        return 0.0, 0.0
+    return float(np.floor(min(xs))), float(np.floor(min(ys)))
+
+def geo_to_bim(in_fname, out_fname, bx, by, epsg = None, project_name = "Scan to BIM project", site_name = "My Site"):
     try:
         df = pd.read_csv(in_fname)
+        if bx is None or by is None:
+            bx, by = get_base_point(df)
+        print(f'base point = ({bx}, {by}), crs = EPSG:{epsg}')
 
         ifc = run("project.create_file")
 
@@ -154,7 +187,7 @@ def geo_to_bim(in_fname, out_fname, bx, by):
             "root.create_entity",
             ifc,
             ifc_class="IfcProject",
-            name="Scan to BIM project",
+            name=project_name,
         )
 
         run("unit.assign_unit", ifc, length={"is_metric": True, "raw": "METERS"})
@@ -170,7 +203,10 @@ def geo_to_bim(in_fname, out_fname, bx, by):
             parent=model_context,
         )
 
-        site = run("root.create_entity", ifc, ifc_class="IfcSite", name="My Site")
+        if epsg is not None:
+            add_georeferencing(ifc, epsg, bx, by)
+
+        site = run("root.create_entity", ifc, ifc_class="IfcSite", name=site_name)
         assign_product("aggregate.assign_object", ifc, product=site, relating_object=project)
 
         for index, row in df.iterrows():
@@ -189,7 +225,7 @@ def geo_to_bim(in_fname, out_fname, bx, by):
             ground = float(row['ground']) if 'ground' in row else 0.0   # older dimension files have no ground column
             pset = {'building_ID': int(row['ID']), 'area': float(row['area']), 'length': float(row['length']), 'elevation': float(row['elevation']), 'ground': ground}
             
-            solid = create_swept_solid(ifc, subcontext, storey, polygon, pset, bx, by)
+            solid = create_swept_solid(ifc, subcontext, storey, polygon, pset, bx, by, ground)
             assign_product("spatial.assign_container", ifc, product=solid, relating_structure=storey)
 
             set_object_property(ifc, ownerhistory, solid, pset)
@@ -229,15 +265,21 @@ def main():
     parser.add_argument('--input', type=str, required=True)
     parser.add_argument('--output', type=str, required=True)
     parser.add_argument('--link_pset', default="link_propertyset.json", type=str, required=False)
-    parser.add_argument('--base_point', default="[724840.0, 6181000.0]", type=str, required=False)   
+    parser.add_argument('--base_point', default="", type=str, required=False)   # [x, y] subtracted from map coordinates. empty: lower left of the footprints
+    parser.add_argument('--crs', default="", type=str, required=False)   # EPSG code. empty: read from the dtm_to_geo projection file
+    parser.add_argument('--project_name', default="Scan to BIM project", type=str, required=False)
+    parser.add_argument('--site_name', default="My Site", type=str, required=False)
     args = parser.parse_args()
 
-    args.base_point = json.loads(args.base_point)
-    bx = args.base_point[0]
-    by = args.base_point[1]
+    bx = by = None
+    if len(args.base_point.strip()):
+        args.base_point = json.loads(args.base_point)
+        bx = args.base_point[0]
+        by = args.base_point[1]
+    epsg = args.crs.replace('EPSG:', '') if len(args.crs.strip()) else get_epsg(args.input + "_projection.txt")
     input_fname = args.input + "_dimension.csv"     
     output_fname = args.output + ".ifc"
-    geo_to_bim(input_fname, output_fname, bx, by)
+    geo_to_bim(input_fname, output_fname, bx, by, epsg, args.project_name, args.site_name)
 
     # output_fname = args.output + "_sample_building.ifc"
     # ifc_building.create_sample_building(output_fname)    # TBD. test. not working
