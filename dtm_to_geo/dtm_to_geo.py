@@ -413,7 +413,7 @@ def create_geometry_from_dtm(infile, outfile):
 	print(f'remove area={args.remove_area:.3f}, scale={scale_ratio:.3f}, calculated area={calculated_remove_area:.3f}')
 	poly_objs = []
 	for i in range(len(contours)):
-		if (i > 0) and (len(contours[i])) > 2:
+		if len(contours[i]) > 2:	# small contours are removed by remove_area below
 			xy = np.squeeze(contours[i])
 			poly = Polygon(xy)
 			area = poly.area
