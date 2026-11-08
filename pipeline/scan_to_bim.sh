@@ -1,1 +1,1 @@
-python ./app.py
+python "$(dirname "$0")/app.py" "$@"

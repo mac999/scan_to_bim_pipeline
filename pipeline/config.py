@@ -3,8 +3,19 @@
 # version: 1.0.0
 # email: laputa99999@gmail.com
 # date: 2022.6
-import sys
+import sys, os
 import json
+
+# relative paths in config.json are resolved against the repository root, not the current directory
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def resolve_path(path):
+    if os.path.isabs(path):
+        return path
+    resolved = os.path.normpath(os.path.join(root_dir, path))
+    if path.endswith('/'):
+        resolved += '/'
+    return resolved
 
 class config:
     pipeline_fname = ""
@@ -17,6 +28,8 @@ class config:
             dic = json.load(f)
 
             for k, v in dic.items():
+                if k.endswith('_path') and isinstance(v, str):
+                    v = resolve_path(v)
                 setattr(config, k, v)
             print(dic)
 
