@@ -214,7 +214,7 @@ def get_elevation_from_map(tif_file, elev_map, polygon):
 	poly1 = polygon.buffer(-args.height_building_offset, resolution=16, join_style=2, mitre_limit=1)	# default=-5.  ex) 3
 	height1 = get_elevation_from_area(elev_map, poly1)
 
-	poly2 = polygon.buffer(args.height_ground_offest, resolution=16, join_style=2, mitre_limit=1)	# default=10. ex) 3
+	poly2 = polygon.buffer(args.height_ground_offset, resolution=16, join_style=2, mitre_limit=1)	# default=10. ex) 3
 	height2 = get_elevation_from_area(elev_map, poly2)
 
 	height = np.abs(height1 - height2)
@@ -444,7 +444,7 @@ def main():
 	parser.add_argument('--extract_pixel_min_value', type=int, default=60, required=False)
 	parser.add_argument('--extract_pixel_max_value', type=int, default=200, required=False)
 	parser.add_argument('--height_building_offset', type=float, default=5.0, required=False)
-	parser.add_argument('--height_ground_offest', type=float, default=10.0, required=False)
+	parser.add_argument('--height_ground_offset', '--height_ground_offest', dest='height_ground_offset', type=float, default=10.0, required=False)	# old misspelled name kept for existing SBDL files
 	parser.add_argument('--max_building_height', type=float, default=100.0, required=False)
 	parser.add_argument('--output_dataset', type=str, default="dataset.csv", required=False)  # TBD    
 	parser.add_argument('--output_pset', type=str, default="json", required=False)  # TBD

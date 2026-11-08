@@ -14,7 +14,7 @@
             "extract_pixel_min_value": 60,
             "extract_pixel_max_value": 200, 
             "height_building_offset": 3.0,
-            "height_ground_offest": 3.0, 
+            "height_ground_offset": 3.0, 
             "max_building_height": 100.0,            
             "output_dataset": "dimension.csv",
             "output_pset": "json"
