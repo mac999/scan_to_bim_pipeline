@@ -113,26 +113,20 @@ def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.
 def set_object_property(ifc, owner_history, element, pset):
     create_guid = lambda: ifcopenshell.guid.compress(uuid.uuid1().hex)
 
-    # Define and associate the wall material
-    material = ifc.createIfcMaterial("wall material")
-    material_layer = ifc.createIfcMaterialLayer(material, 0.2, None)
-    material_layer_set = ifc.createIfcMaterialLayerSet([material_layer], None)
-    material_layer_set_usage = ifc.createIfcMaterialLayerSetUsage(material_layer_set, "AXIS2", "POSITIVE", -0.1)
-    ifc.createIfcRelAssociatesMaterial(create_guid(), owner_history, RelatedObjects=[element], RelatingMaterial=material_layer_set_usage)
-
-    # Create and assign property set
+    # values measured from the scan. Pset_ names are reserved for buildingSMART property sets
     property_values = [
-        ifc.createIfcPropertySingleValue("Reference", "Reference", ifc.create_entity("IfcText", "Describe the Reference"), None),
-        ifc.createIfcPropertySingleValue("IsExternal", "IsExternal", ifc.create_entity("IfcBoolean", True), None),
-        ifc.createIfcPropertySingleValue("ThermalTransmittance", "ThermalTransmittance", ifc.create_entity("IfcReal", 2.569), None),
-        ifc.createIfcPropertySingleValue("IntValue", "IntValue", ifc.create_entity("IfcInteger", 2), None)
+        ifc.createIfcPropertySingleValue("BuildingID", None, ifc.create_entity("IfcInteger", pset['building_ID']), None),
+        ifc.createIfcPropertySingleValue("Height", None, ifc.create_entity("IfcLengthMeasure", pset['elevation']), None),
+        ifc.createIfcPropertySingleValue("GroundElevation", None, ifc.create_entity("IfcLengthMeasure", pset['ground']), None),
+        ifc.createIfcPropertySingleValue("FootprintArea", None, ifc.create_entity("IfcAreaMeasure", pset['area']), None),
+        ifc.createIfcPropertySingleValue("Perimeter", None, ifc.create_entity("IfcLengthMeasure", pset['length']), None)
     ]
-    property_set = ifc.createIfcPropertySet(create_guid(), owner_history, "Pset_WallCommon", None, property_values)
+    property_set = ifc.createIfcPropertySet(create_guid(), owner_history, "ScanToBIM", None, property_values)
     ifc.createIfcRelDefinesByProperties(create_guid(), owner_history, None, None, [element], property_set)
 
     # Add quantity information
     quantity_values = [
-        ifc.createIfcQuantityLength("Length", "Length of the eleement", None, pset['length']),
+        ifc.createIfcQuantityLength("Length", "Perimeter of the footprint", None, pset['length']),
         ifc.createIfcQuantityArea("Area", "Area of the element", None, pset['area']),
         ifc.createIfcQuantityVolume("Volume", "Volume of the element", None, pset['area'] * pset['elevation'])
     ]
