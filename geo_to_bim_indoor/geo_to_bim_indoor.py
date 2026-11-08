@@ -208,6 +208,7 @@ def save_ifc(fname, labels, obbs):
         vertices, faces = get_box_mesh(obb, args.element_thickness)
         representation = run("geometry.add_mesh_representation", ifc, context=body, vertices=[vertices], faces=[faces])
         run("geometry.assign_representation", ifc, product=element, representation=representation)
+        run("geometry.edit_object_placement", ifc, product=element, matrix=np.eye(4))   # the mesh is in world coordinates
         assign_product("spatial.assign_container", ifc, product=element, relating_structure=storey)
         count += 1
 
