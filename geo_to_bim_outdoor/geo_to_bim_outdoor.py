@@ -80,7 +80,7 @@ def create_building(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0):
     model.write("model.ifc")
     pass
 
-def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0):
+def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0, ground = 0.0):
     ifc_points = []
     for p in polygon:
         p[0] = p[0] - bx
@@ -104,7 +104,9 @@ def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.
     # create an mass using building element proxy
     element = run("root.create_entity", ifc, ifc_class="IfcBuildingElementProxy", name="building from 3D scan")
     run("geometry.assign_representation", ifc, product=element, representation=shape)   # assign the shape created earlier as the element representation
-    run("geometry.edit_object_placement", ifc, product=element, matrix=numpy.eye(4))    # place the ifcslab, but an identity matrix doesn't do anything
+    matrix = numpy.eye(4)
+    matrix[2][3] = ground   # extrude from the ground elevation, not from z=0
+    run("geometry.edit_object_placement", ifc, product=element, matrix=matrix)
 
     return element
 
@@ -190,7 +192,8 @@ def geo_to_bim(in_fname, out_fname, bx, by):
             storey = run("root.create_entity", ifc, ifc_class="IfcBuildingStorey", name="My Storey")
             assign_product("aggregate.assign_object", ifc, product=storey, relating_object=building)
 
-            pset = {'building_ID': int(row['ID']), 'area': float(row['area']), 'length': float(row['length']), 'elevation': float(row['elevation'])}
+            ground = float(row['ground']) if 'ground' in row else 0.0   # older dimension files have no ground column
+            pset = {'building_ID': int(row['ID']), 'area': float(row['area']), 'length': float(row['length']), 'elevation': float(row['elevation']), 'ground': ground}
             
             solid = create_swept_solid(ifc, subcontext, storey, polygon, pset, bx, by)
             assign_product("spatial.assign_container", ifc, product=solid, relating_structure=storey)

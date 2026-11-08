@@ -355,7 +355,7 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 		return
 
 	writer = csv.writer(datafile) # delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-	writer.writerow(['ID', 'type', 'area', 'length', 'elevation', 'pos_x', 'pos_y', 'footprint'])
+	writer.writerow(['ID', 'type', 'area', 'length', 'elevation', 'pos_x', 'pos_y', 'footprint', 'ground'])
 
 	elev_map = np.load(elevation_file + ".npy")
 
@@ -366,6 +366,7 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 		height = get_elevation_from_map(tif_file, elev_map, polygon)
 		if height < 0.0:
 			continue
+		ground = get_elevation_from_area(elev_map, polygon.buffer(args.height_ground_offset, resolution=16, join_style=2, mitre_limit=1))
 
 		footprint = []       
 		coords = np.array([x, y])
@@ -382,7 +383,7 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 		pos_x = poly_footprint.centroid.coords.xy[0][0]
 		pos_y = poly_footprint.centroid.coords.xy[1][0]
 
-		writer.writerow([i, 'building', area, length, height, pos_x, pos_y, footprint])
+		writer.writerow([i, 'building', area, length, height, pos_x, pos_y, footprint, ground])
 
 	datafile.close()
 
