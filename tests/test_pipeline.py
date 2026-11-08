@@ -16,16 +16,16 @@ def make_stage(bin_dir, name, exit_code=0):
     with open(bin_dir / name / (name + '.py'), 'w') as f:
         f.write(STAGE_CODE.replace('EXIT_CODE', str(exit_code)))
 
-def run_app(tmp_path, stages, cwd=None):
+def run_app(tmp_path, stages, cwd=None, **app_config):
     bin_dir = tmp_path / 'bin_root'
     os.makedirs(bin_dir, exist_ok=True)
-    config = write_json(tmp_path / 'config.json', {
+    config = write_json(tmp_path / 'config.json', dict({
         'app': 'pcd_pipeline',
         'root_path': str(tmp_path) + '/',
         'bin_path': str(bin_dir) + '/',
         'lib_path': ROOT + '/lib/',
         'data_path': str(tmp_path) + '/input/',
-        'debug_gui': False})
+        'debug_gui': False}, **app_config))
     os.makedirs(tmp_path / 'input', exist_ok=True)
     (tmp_path / 'input' / 'sample.pcd').write_text('')
     write_json(tmp_path / 'input' / 'sample_scan_to_bim.json', {'pipeline.test': stages})
@@ -85,6 +85,20 @@ def test_app_runs_from_another_directory(tmp_path):
     make_stage(tmp_path / 'bin_root', 'first_stage')
     os.makedirs(tmp_path / 'elsewhere')
     ret = run_app(tmp_path, [{'type': 'first_stage'}], cwd=tmp_path / 'elsewhere')
+    assert ret.returncode == 0
+    assert stage_ran(tmp_path, 'first_stage')
+
+def test_data_ext_from_config_selects_input_files(tmp_path):
+    make_stage(tmp_path / 'bin_root', 'first_stage')
+    ret = run_app(tmp_path, [{'type': 'first_stage'}], data_ext=['.las'])
+    assert ret.returncode == 0
+    assert not stage_ran(tmp_path, 'first_stage')
+
+def test_pipeline_tag_from_config(tmp_path):
+    make_stage(tmp_path / 'bin_root', 'first_stage')
+    os.makedirs(tmp_path / 'input')
+    write_json(tmp_path / 'input' / 'sample_custom.json', {'pipeline.test': [{'type': 'first_stage'}]})
+    ret = run_app(tmp_path, [], pipeline_tag='custom.json')
     assert ret.returncode == 0
     assert stage_ran(tmp_path, 'first_stage')
 
