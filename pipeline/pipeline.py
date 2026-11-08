@@ -18,6 +18,7 @@ class pipeline_stage:
     pipe = None
     stage_config = None
     active_run = True
+    return_code = 0
 
     def __init__(self, pipe_obj, name):
         self.name = name
@@ -65,6 +66,8 @@ class pipeline_stage:
             else: 
                 program_path = conf.bin_path + "bin/" + self.name
                 if os.path.isfile(program_path) == False:
+                    print(f'{self.name}: program not found')
+                    self.return_code = 1
                     return None
             
             cmds.append(program_path)
@@ -141,10 +144,11 @@ class pipeline_stage:
                 exec_cmd.append("--" + param)
                 exec_cmd.append(value)
 
-            ret = subprocess.call(exec_cmd) 
+            self.return_code = subprocess.call(exec_cmd)
 
         except Exception as e:
             print(e)
+            self.return_code = 1
 
         return output_fname_tag         
 
@@ -257,3 +261,6 @@ class pipeline:
         for idx, p in enumerate(self.pipes):
             p.init(input) 
             input = p.run()
+            if p.return_code != 0:
+                print(f'{p.name} failed with exit code {p.return_code}. stop {self.name}')
+                break

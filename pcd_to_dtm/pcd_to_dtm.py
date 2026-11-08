@@ -49,6 +49,8 @@ def main():
 
         ret = subprocess.call(cmd)
         print(ret)
+        if ret != 0:
+            sys.exit(ret)
 
         if os.path.exists(temp_las_file):
             os.remove(temp_las_file)
@@ -58,3 +60,4 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         print(e)
+        sys.exit(1)

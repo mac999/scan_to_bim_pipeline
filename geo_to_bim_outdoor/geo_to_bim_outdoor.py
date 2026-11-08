@@ -194,6 +194,7 @@ def geo_to_bim(in_fname, out_fname, bx, by):
         ifc.write(out_fname)
     except Exception as e:
         print(e)
+        sys.exit(1)
 
 def intersect_mesh(args):
     mesh = trimesh.Trimesh(vertices=[[0, 0, 0], [0, 0, 10], [0, 10, 0]],
