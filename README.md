@@ -171,12 +171,14 @@ SBDL concept diagram and [UML](./doc/SAD.uml) architecture.</br>
 | v0.1 | 2022.11 | Pipeline framework and SBDL. Geometry algorithms for outdoor facade objects, deep learning and docker-based stages. |
 | v0.2 | 2023.7 | Docker image support. Pipelines over multiple input files. Refactoring. |
 | | 2023.8 - 2023.10 | Related tools: [data augmentation](https://github.com/mac999/pcd_augmentation), [LiDAR simulation](https://github.com/mac999/simulate_LiDAR), [scan quality checker](https://github.com/mac999/check_scan_quality). |
+| | 2023.10 - 2023.12 | Indoor stages: deep learning segmentation with RandLA-Net trained on S3DIS (pcd_to_seg_ml, run in docker), segment to geometry by ML (seg_to_geo_ml), bounding boxes with Revit family mapping (pcd_to_bbox), wall and floor mapping (geo_to_bim_indoor). |
 | | 2024.2 | pcd_to_dtm and dtm_to_geo fixes. Options active, log_view, height_building_offset, height_ground_offset, max_building_height. |
 | v0.6 | 2026.7 | Python 3.11, Shapely 2 and NumPy 1.24 support. CMake uses find_package(PCL). Fixes in elevation sampling, the height axis of object classification and point density. |
 | v0.6.1 | 2026.11 | A failed stage stops its pipeline. ifcopenshell 0.8 support. Outdoor IFC keeps map coordinates (IfcMapConversion) and ground elevation. Indoor IFC output (IfcWall, IfcSlab, IfcCovering). Options moved to config.json and stage parameters, see [doc/sbdl.md](./doc/sbdl.md). environment.yml and tests. |
 
-Planned: MLOps for outdoor object training, SBDL authoring with visual flow programming or an LLM, deep learning based indoor classification and segmentation, geometry to BIM through a Revit plugin, and a scan data processing app on top of the pipeline.</br>
 <p align="center"><img height="200" src="./doc/indoor_ml.JPG"/><img height="200" src="./doc/indoor_perform1.JPG"/></p>
+
+Planned: MLOps for outdoor object training, SBDL authoring with visual flow programming or an LLM, a Revit plugin that builds elements from the pcd_to_bbox family mapping, and a scan data processing app on top of the pipeline.</br>
 
 # license
 MIT license.</br></br>
