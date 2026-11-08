@@ -133,7 +133,7 @@ class pipeline_stage:
             exec_cmd.append(output_fname_tag)
 
             for param in self.stage_config:
-                if param == "type" or param == 'cmd' or param == "input" or param == "output" or param == 'note':
+                if param == "type" or param == 'cmd' or param == "input" or param == "output" or param == 'note' or param == 'active':
                     continue
                 value = str(self.stage_config[param])
                 if param == "pdal_pipeline":
