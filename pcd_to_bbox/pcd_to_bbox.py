@@ -96,7 +96,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='pcd to bbox')
-    parser.add_argument('--input', type=str, default='H:/data/Stanford3dDataset_v1.2/Area_1/', help='input PCD text file')
+    parser.add_argument('--input', type=str, required=True, help='input PCD text file')
     parser.add_argument('--output', type=str, default='./pcd_to_bbox1.json', help='output BBox json file')
     
     args = parser.parse_args()

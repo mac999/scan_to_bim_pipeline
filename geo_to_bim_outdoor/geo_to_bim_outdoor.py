@@ -1,13 +1,20 @@
 # title: geo_to_bim for scan to BIM
 # created date: 2022.5.10, taewook kang, laputa99999@gmail.com
 # 
-import os, sys, json, glob, numpy, uuid, argparse, trimesh
+import os, sys, re, json, glob, numpy, uuid, argparse, trimesh
 import numpy as np, pandas as pd, matplotlib.pyplot as plt, ifcopenshell
 import ifcopenshell.api
 from math import sin, cos
 # import ifc_building
 
 run = ifcopenshell.api.run
+
+def assign_product(usecase, ifc, product, **kwargs):
+    # ifcopenshell 0.8 takes a list of products, 0.7 a single product
+    try:
+        return run(usecase, ifc, products=[product], **kwargs)
+    except TypeError:
+        return run(usecase, ifc, product=product, **kwargs)
 
 def create_basic_wall(self):
     length = self.convert_si_to_unit(self.settings["length"])
@@ -59,21 +66,21 @@ def create_building(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0):
     storey = run("root.create_entity", model, ifc_class="IfcBuildingStorey", name="Ground Floor")
 
     # the site is our top level location, assign it to the project. 
-    run("aggregate.assign_object", model, relating_object=project, product=site)
-    run("aggregate.assign_object", model, relating_object=site, product=building)
-    run("aggregate.assign_object", model, relating_object=building, product=storey)
+    assign_product("aggregate.assign_object", model, relating_object=project, product=site)
+    assign_product("aggregate.assign_object", model, relating_object=site, product=building)
+    assign_product("aggregate.assign_object", model, relating_object=building, product=storey)
 
     # Create wall
     wall = run("root.create_entity", model, ifc_class="IfcWall")
     representation = run("geometry.add_wall_representation", model, context=body, length=5, height=3, thickness=0.2)    # Add a new wall-like body geometry, 5 meters long, 3 meters high, and 200mm thick
     run("geometry.assign_representation", model, product=wall, representation=representation)   # Assign our new body geometry back to our wall
 
-    run("spatial.assign_container", model, relating_structure=storey, product=wall) # Place our wall in the ground floor
+    assign_product("spatial.assign_container", model, relating_structure=storey, product=wall) # Place our wall in the ground floor
 
     model.write("model.ifc")
     pass
 
-def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0):
+def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0, ground = 0.0):
     ifc_points = []
     for p in polygon:
         p[0] = p[0] - bx
@@ -97,42 +104,71 @@ def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.
     # create an mass using building element proxy
     element = run("root.create_entity", ifc, ifc_class="IfcBuildingElementProxy", name="building from 3D scan")
     run("geometry.assign_representation", ifc, product=element, representation=shape)   # assign the shape created earlier as the element representation
-    run("geometry.edit_object_placement", ifc, product=element, matrix=numpy.eye(4))    # place the ifcslab, but an identity matrix doesn't do anything
+    matrix = numpy.eye(4)
+    matrix[2][3] = ground   # extrude from the ground elevation, not from z=0
+    run("geometry.edit_object_placement", ifc, product=element, matrix=matrix)
 
     return element
 
 def set_object_property(ifc, owner_history, element, pset):
     create_guid = lambda: ifcopenshell.guid.compress(uuid.uuid1().hex)
 
-    # Define and associate the wall material
-    material = ifc.createIfcMaterial("wall material")
-    material_layer = ifc.createIfcMaterialLayer(material, 0.2, None)
-    material_layer_set = ifc.createIfcMaterialLayerSet([material_layer], None)
-    material_layer_set_usage = ifc.createIfcMaterialLayerSetUsage(material_layer_set, "AXIS2", "POSITIVE", -0.1)
-    ifc.createIfcRelAssociatesMaterial(create_guid(), owner_history, RelatedObjects=[element], RelatingMaterial=material_layer_set_usage)
-
-    # Create and assign property set
+    # values measured from the scan. Pset_ names are reserved for buildingSMART property sets
     property_values = [
-        ifc.createIfcPropertySingleValue("Reference", "Reference", ifc.create_entity("IfcText", "Describe the Reference"), None),
-        ifc.createIfcPropertySingleValue("IsExternal", "IsExternal", ifc.create_entity("IfcBoolean", True), None),
-        ifc.createIfcPropertySingleValue("ThermalTransmittance", "ThermalTransmittance", ifc.create_entity("IfcReal", 2.569), None),
-        ifc.createIfcPropertySingleValue("IntValue", "IntValue", ifc.create_entity("IfcInteger", 2), None)
+        ifc.createIfcPropertySingleValue("BuildingID", None, ifc.create_entity("IfcInteger", pset['building_ID']), None),
+        ifc.createIfcPropertySingleValue("Height", None, ifc.create_entity("IfcLengthMeasure", pset['elevation']), None),
+        ifc.createIfcPropertySingleValue("GroundElevation", None, ifc.create_entity("IfcLengthMeasure", pset['ground']), None),
+        ifc.createIfcPropertySingleValue("FootprintArea", None, ifc.create_entity("IfcAreaMeasure", pset['area']), None),
+        ifc.createIfcPropertySingleValue("Perimeter", None, ifc.create_entity("IfcLengthMeasure", pset['length']), None)
     ]
-    property_set = ifc.createIfcPropertySet(create_guid(), owner_history, "Pset_WallCommon", None, property_values)
+    property_set = ifc.createIfcPropertySet(create_guid(), owner_history, "ScanToBIM", None, property_values)
     ifc.createIfcRelDefinesByProperties(create_guid(), owner_history, None, None, [element], property_set)
 
     # Add quantity information
     quantity_values = [
-        ifc.createIfcQuantityLength("Length", "Length of the eleement", None, pset['length']),
+        ifc.createIfcQuantityLength("Length", "Perimeter of the footprint", None, pset['length']),
         ifc.createIfcQuantityArea("Area", "Area of the element", None, pset['area']),
         ifc.createIfcQuantityVolume("Volume", "Volume of the element", None, pset['area'] * pset['elevation'])
     ]
     element_quantity = ifc.createIfcElementQuantity(create_guid(), owner_history, "BaseQuantities", None, None, quantity_values)
     ifc.createIfcRelDefinesByProperties(create_guid(), owner_history, None, None, [element], element_quantity)
         
-def geo_to_bim(in_fname, out_fname, bx, by):
+def get_epsg(projection_file):
+    # the WKT written by dtm_to_geo. the last authority entry names the CRS itself
+    if not os.path.isfile(projection_file):
+        return None
+    with open(projection_file, 'r') as f:
+        wkt = f.read()
+    codes = re.findall(r'(?:AUTHORITY|ID)\["EPSG",\s*"?(\d+)"?\]', wkt)
+    return codes[-1] if codes else None
+
+def add_georeferencing(ifc, epsg, bx, by):
+    name = 'EPSG:' + str(epsg)
+    try:
+        run("georeference.add_georeferencing", ifc, name=name)
+    except TypeError:   # ifcopenshell 0.7 takes no name
+        run("georeference.add_georeferencing", ifc)
+    run("georeference.edit_georeferencing", ifc,
+        projected_crs={"Name": name},
+        coordinate_operation={"Eastings": bx, "Northings": by, "OrthogonalHeight": 0.0})
+
+def get_base_point(df):
+    # lower left corner of all footprints, rounded down to whole meters
+    xs, ys = [], []
+    for footprint in df['footprint']:
+        for x, y in json.loads(footprint.replace('(', '[').replace(')', ']')):
+            xs.append(x)
+            ys.append(y)
+    if len(xs) == 0:
+        return 0.0, 0.0
+    return float(np.floor(min(xs))), float(np.floor(min(ys)))
+
+def geo_to_bim(in_fname, out_fname, bx, by, epsg = None, project_name = "Scan to BIM project", site_name = "My Site"):
     try:
         df = pd.read_csv(in_fname)
+        if bx is None or by is None:
+            bx, by = get_base_point(df)
+        print(f'base point = ({bx}, {by}), crs = EPSG:{epsg}')
 
         ifc = run("project.create_file")
 
@@ -151,22 +187,27 @@ def geo_to_bim(in_fname, out_fname, bx, by):
             "root.create_entity",
             ifc,
             ifc_class="IfcProject",
-            name="Scan to BIM project",
+            name=project_name,
         )
 
         run("unit.assign_unit", ifc, length={"is_metric": True, "raw": "METERS"})
 
-        # mycontext = run("context.add_context", ifc)
+        # a body subcontext under a model context. georeferencing attaches to the model context
+        model_context = run("context.add_context", ifc, context_type="Model")
         subcontext = run(
             "context.add_context",
             ifc,
-            # context="Model",
-            # subcontext="Body",
+            context_type="Model",
+            context_identifier="Body",
             target_view="MODEL_VIEW",
+            parent=model_context,
         )
 
-        site = run("root.create_entity", ifc, ifc_class="IfcSite", name="My Site")
-        run("aggregate.assign_object", ifc, product=site, relating_object=project)
+        if epsg is not None:
+            add_georeferencing(ifc, epsg, bx, by)
+
+        site = run("root.create_entity", ifc, ifc_class="IfcSite", name=site_name)
+        assign_product("aggregate.assign_object", ifc, product=site, relating_object=project)
 
         for index, row in df.iterrows():
             polygon = row['footprint']
@@ -176,15 +217,16 @@ def geo_to_bim(in_fname, out_fname, bx, by):
             elevation = float(row['elevation'])
             
             building = run("root.create_entity", ifc, ifc_class="IfcBuilding", name="My Building")
-            run("aggregate.assign_object", ifc, product=building, relating_object=site)
+            assign_product("aggregate.assign_object", ifc, product=building, relating_object=site)
 
             storey = run("root.create_entity", ifc, ifc_class="IfcBuildingStorey", name="My Storey")
-            run("aggregate.assign_object", ifc, product=storey, relating_object=building)
+            assign_product("aggregate.assign_object", ifc, product=storey, relating_object=building)
 
-            pset = {'building_ID': int(row['ID']), 'area': float(row['area']), 'length': float(row['length']), 'elevation': float(row['elevation'])}
+            ground = float(row['ground']) if 'ground' in row else 0.0   # older dimension files have no ground column
+            pset = {'building_ID': int(row['ID']), 'area': float(row['area']), 'length': float(row['length']), 'elevation': float(row['elevation']), 'ground': ground}
             
-            solid = create_swept_solid(ifc, subcontext, storey, polygon, pset, bx, by)
-            run("spatial.assign_container", ifc, product=solid, relating_structure=storey)
+            solid = create_swept_solid(ifc, subcontext, storey, polygon, pset, bx, by, ground)
+            assign_product("spatial.assign_container", ifc, product=solid, relating_structure=storey)
 
             set_object_property(ifc, ownerhistory, solid, pset)
             
@@ -194,6 +236,7 @@ def geo_to_bim(in_fname, out_fname, bx, by):
         ifc.write(out_fname)
     except Exception as e:
         print(e)
+        sys.exit(1)
 
 def intersect_mesh(args):
     mesh = trimesh.Trimesh(vertices=[[0, 0, 0], [0, 0, 10], [0, 10, 0]],
@@ -219,18 +262,24 @@ def intersect_mesh(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default="/home/ktw/projects/pcd_pl/output/punktsky/dtm_to_geo/dtm_to_geo", type=str, required=False)
-    parser.add_argument('--output', default="/home/ktw/projects/pcd_pl/output/punktsky/geo_to_bim_outdoor/geo_to_bim_outdoor", type=str, required=False)
+    parser.add_argument('--input', type=str, required=True)
+    parser.add_argument('--output', type=str, required=True)
     parser.add_argument('--link_pset', default="link_propertyset.json", type=str, required=False)
-    parser.add_argument('--base_point', default="[724840.0, 6181000.0]", type=str, required=False)   
+    parser.add_argument('--base_point', default="", type=str, required=False)   # [x, y] subtracted from map coordinates. empty: lower left of the footprints
+    parser.add_argument('--crs', default="", type=str, required=False)   # EPSG code. empty: read from the dtm_to_geo projection file
+    parser.add_argument('--project_name', default="Scan to BIM project", type=str, required=False)
+    parser.add_argument('--site_name', default="My Site", type=str, required=False)
     args = parser.parse_args()
 
-    args.base_point = json.loads(args.base_point)
-    bx = args.base_point[0]
-    by = args.base_point[1]
+    bx = by = None
+    if len(args.base_point.strip()):
+        args.base_point = json.loads(args.base_point)
+        bx = args.base_point[0]
+        by = args.base_point[1]
+    epsg = args.crs.replace('EPSG:', '') if len(args.crs.strip()) else get_epsg(args.input + "_projection.txt")
     input_fname = args.input + "_dimension.csv"     
     output_fname = args.output + ".ifc"
-    geo_to_bim(input_fname, output_fname, bx, by)
+    geo_to_bim(input_fname, output_fname, bx, by, epsg, args.project_name, args.site_name)
 
     # output_fname = args.output + "_sample_building.ifc"
     # ifc_building.create_sample_building(output_fname)    # TBD. test. not working

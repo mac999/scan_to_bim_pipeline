@@ -108,7 +108,14 @@ cd build</br>
 cmake ..</br>
 make</br>
 </br>
-If there are dependency errors with requirements.txt, use requirements_simple.txt.
+If there are dependency errors with requirements.txt, use requirements_simple.txt.</br>
+</br>
+With conda, [environment.yml](./environment.yml) installs PDAL, GDAL, PCL and the python packages into one environment (tested on Ubuntu 24.04 arm64).</br>
+conda env create -f environment.yml</br>
+conda activate scan2bim</br>
+mkdir build && cd build</br>
+cmake .. -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DQT_HOST_PATH=$CONDA_PREFIX</br>
+make</br>
 
 # run
 Before running, install requirements_simple.txt (or requirements.txt) including the packages above.</br>
@@ -169,8 +176,14 @@ pipeline.indoor_obb_extraction(*.las) > *.geojson</br>
 }
 ```
 </br>
-cd pipeline</br>
-python app.py</br>
+python ./pipeline/app.py</br>
+</br>
+app.py resolves the paths in config.json from the repository root, so it runs from any directory. The parameters of each stage are listed in [doc/sbdl.md](./doc/sbdl.md). The conference_room1 sample in ./input has a rule-based indoor pipeline that writes an IFC file:</br>
+python ./pipeline/app.py --input_path "./input/conference_room1/*.pcd" --stage indoor_rule</br>
+
+# test
+python -m pytest tests</br>
+The tests build small synthetic rasters and point clouds. Tests that need PDAL, GDAL, Open3D, ifcopenshell or the C++ build are skipped when those are missing.</br>
 
 # sample dataset
 Download a dataset and copy it to the /input folder.</br> 
@@ -185,6 +198,10 @@ Top 6 Free LiDAR Data Sources [LiDAR files](https://gisgeography.com/top-6-free-
 # architecture
 SBDL concept diagram and [UML](./doc/SAD.uml) architecture.</br>
 <p align="center"><img height="150" src="./doc/uml3.PNG"/><img height="150" src="./doc/uml1.PNG"/><img height="150" src="./doc/uml2.PNG"/></p>
+
+# revision history
+v0.6.1</br>
+> 2026.11, A failed stage now stops its pipeline instead of passing an empty input on. Runs with ifcopenshell 0.8. The outdoor IFC keeps the map coordinates (IfcMapConversion), places buildings on their ground elevation and stores only scan-derived properties. geo_to_bim_indoor writes IfcWall, IfcSlab and IfcCovering. Hard-coded options moved to config.json and stage parameters. pcd_clean was renamed to pcd_to_clean to match its stage type. Added environment.yml and tests.</br>
 
 # license
 MIT license.</br></br>

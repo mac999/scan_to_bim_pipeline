@@ -1,4 +1,4 @@
-'''
+r'''
 Refer to Open3D-ML/docs/tutorial/notebook/add_own_dataset.rst
 
 In this tutorial, we will learn how to add a custom dataset that you can use to train a model. Before you add a custom dataset, ensure that you are familiar with the existing datasets in the scripts/download_datasets folder.
@@ -54,6 +54,10 @@ class MyDataset(BaseDataset):
     def save_test_result(self, results, attr):
         # save results['predict_labels'] to file.
         pass
+
+def read_pcd(path):
+    # dataset specific. return points (N, 3), features (N, C) or None, labels (N,)
+    raise NotImplementedError('read_pcd must be implemented for the custom dataset')
 
 class MyDatasetSplit():
     def __init__(self, dataset, split='train'):

@@ -70,20 +70,24 @@ class application:
 
         print('\n* exit pipeline...')
 
-def is_data_file(fname):
-    # check fname ext with pcd
+def is_data_file(fname, data_ext):
     ext = os.path.splitext(fname)[1]
     ext = ext.lower()
-    return ext == '.las' or ext == '.laz' or ext == '.pcd' or ext == '.geojson'
+    return ext in data_ext
 
 def process_multiple_pipeline(args):
     print('* Begin processing multiple files...\n')
+
+    conf = config.config()
+    conf.load(args.config)
+    data_ext = getattr(conf, 'data_ext', ['.las', '.laz', '.pcd', '.geojson'])
+    pipeline_tag = args.pipeline_tag if args.pipeline_tag else getattr(conf, 'pipeline_tag', 'scan_to_bim.json')
 
     files = glob.glob(args.input_path)
     print(files)
 
     for file in files:
-        if is_data_file(file) == False:
+        if is_data_file(file, data_ext) == False:
             continue
         path = os.path.dirname(file)
         name, ext = os.path.splitext(os.path.basename(file))
@@ -92,7 +96,7 @@ def process_multiple_pipeline(args):
         if args.pipeline != None and args.pipeline != "":
             json_pipeline = args.pipeline
         else:
-            json_pipeline = path + '/' + name + '_' + args.pipeline_tag
+            json_pipeline = path + '/' + name + '_' + pipeline_tag
         output = args.output_path + name + '/'
 
         app = application("pcd_pipeline_app")
@@ -105,12 +109,12 @@ def main():
     # load argument 
     try:        
         parser = argparse.ArgumentParser()
-        parser.add_argument('--config', type=str, default="./pipeline/config.json", required=False)
+        parser.add_argument('--config', type=str, default=config.root_dir + "/pipeline/config.json", required=False)
         parser.add_argument('--pipeline', type=str, default='', required=False)
-        parser.add_argument('--pipeline_tag', type=str, default='scan_to_bim.json', required=False)
+        parser.add_argument('--pipeline_tag', type=str, default='', required=False)   # default comes from config.json
         parser.add_argument('--stage', type=str, default='.*', required=False)
-        parser.add_argument('--input_path', type=str, default='./input/*.*', required=False)
-        parser.add_argument('--output_path', type=str, default='./output/', required=False)
+        parser.add_argument('--input_path', type=str, default=config.root_dir + '/input/*.*', required=False)
+        parser.add_argument('--output_path', type=str, default=config.root_dir + '/output/', required=False)
         args = parser.parse_args() # ["--config", "/home/ktw/projects/pcd_pl/pipeline/config.json", "--pipeline", json_pipeline, "--input", file, "--output", output])
 
         process_multiple_pipeline(args)

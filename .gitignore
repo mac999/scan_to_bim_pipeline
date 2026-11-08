@@ -3,3 +3,7 @@ output/*
 __pycache__/*
 lib/__pycache__/*
 pipeline/__pycache__/*
+__pycache__/
+.pytest_cache/
+build/
+bin/

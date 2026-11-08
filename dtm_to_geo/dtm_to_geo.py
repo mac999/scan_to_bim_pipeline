@@ -214,7 +214,7 @@ def get_elevation_from_map(tif_file, elev_map, polygon):
 	poly1 = polygon.buffer(-args.height_building_offset, resolution=16, join_style=2, mitre_limit=1)	# default=-5.  ex) 3
 	height1 = get_elevation_from_area(elev_map, poly1)
 
-	poly2 = polygon.buffer(args.height_ground_offest, resolution=16, join_style=2, mitre_limit=1)	# default=10. ex) 3
+	poly2 = polygon.buffer(args.height_ground_offset, resolution=16, join_style=2, mitre_limit=1)	# default=10. ex) 3
 	height2 = get_elevation_from_area(elev_map, poly2)
 
 	height = np.abs(height1 - height2)
@@ -355,7 +355,7 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 		return
 
 	writer = csv.writer(datafile) # delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-	writer.writerow(['ID', 'type', 'area', 'length', 'elevation', 'pos_x', 'pos_y', 'footprint'])
+	writer.writerow(['ID', 'type', 'area', 'length', 'elevation', 'pos_x', 'pos_y', 'footprint', 'ground'])
 
 	elev_map = np.load(elevation_file + ".npy")
 
@@ -366,6 +366,7 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 		height = get_elevation_from_map(tif_file, elev_map, polygon)
 		if height < 0.0:
 			continue
+		ground = get_elevation_from_area(elev_map, polygon.buffer(args.height_ground_offset, resolution=16, join_style=2, mitre_limit=1))
 
 		footprint = []       
 		coords = np.array([x, y])
@@ -382,7 +383,7 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 		pos_x = poly_footprint.centroid.coords.xy[0][0]
 		pos_y = poly_footprint.centroid.coords.xy[1][0]
 
-		writer.writerow([i, 'building', area, length, height, pos_x, pos_y, footprint])
+		writer.writerow([i, 'building', area, length, height, pos_x, pos_y, footprint, ground])
 
 	datafile.close()
 
@@ -413,7 +414,7 @@ def create_geometry_from_dtm(infile, outfile):
 	print(f'remove area={args.remove_area:.3f}, scale={scale_ratio:.3f}, calculated area={calculated_remove_area:.3f}')
 	poly_objs = []
 	for i in range(len(contours)):
-		if (i > 0) and (len(contours[i])) > 2:
+		if len(contours[i]) > 2:	# small contours are removed by remove_area below
 			xy = np.squeeze(contours[i])
 			poly = Polygon(xy)
 			area = poly.area
@@ -444,7 +445,7 @@ def main():
 	parser.add_argument('--extract_pixel_min_value', type=int, default=60, required=False)
 	parser.add_argument('--extract_pixel_max_value', type=int, default=200, required=False)
 	parser.add_argument('--height_building_offset', type=float, default=5.0, required=False)
-	parser.add_argument('--height_ground_offest', type=float, default=10.0, required=False)
+	parser.add_argument('--height_ground_offset', '--height_ground_offest', dest='height_ground_offset', type=float, default=10.0, required=False)	# old misspelled name kept for existing SBDL files
 	parser.add_argument('--max_building_height', type=float, default=100.0, required=False)
 	parser.add_argument('--output_dataset', type=str, default="dataset.csv", required=False)  # TBD    
 	parser.add_argument('--output_pset', type=str, default="json", required=False)  # TBD

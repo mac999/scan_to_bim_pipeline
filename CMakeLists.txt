@@ -19,7 +19,12 @@ message("BIN PATH = " ${CMAKE_BINARY_DIR})
 # Locate PCL (pulls in Boost, Eigen, FLANN and VTK transitively).
 # If PCL was built from source without installing, pass its build dir:
 #   cmake -DPCL_DIR=/path/to/pcl/build ..
-find_package(PCL 1.12 REQUIRED COMPONENTS common features filters io kdtree keypoints octree recognition registration sample_consensus search segmentation surface visualization)
+# visualization pulls in VTK with OpenGL and Qt. only the optional viewer needs it
+set(PIPELINE_PCL_COMPONENTS common features filters io kdtree keypoints octree recognition registration sample_consensus search segmentation surface)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/pcd_viewer/pcd_viewer.cpp)
+    list(APPEND PIPELINE_PCL_COMPONENTS visualization)
+endif()
+find_package(PCL 1.12 REQUIRED COMPONENTS ${PIPELINE_PCL_COMPONENTS})
 find_package(Boost REQUIRED COMPONENTS filesystem program_options)
 
 include_directories(${PCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})

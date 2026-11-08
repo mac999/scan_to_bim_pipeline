@@ -8,6 +8,7 @@ def main():
     parser.add_argument('--input', type=str, required=True)
     parser.add_argument('--output', type=str, required=True)
     parser.add_argument('--output_type', type=str, required=True)
+    parser.add_argument('--transform_matrix', type=str, default='1  0  0  0  0  1  0  0  0  0  1  0  0  0  0  1', required=False)   # 4x4 row major, applied by pdal filters.transformation
     args = parser.parse_args() 
 
     files = glob.glob(args.input)
@@ -23,7 +24,7 @@ def main():
                 infile, 
                 {
                     "type":"filters.transformation",
-                    "matrix":"1  0  0  0  0  1  0  0  0  0  1  0  0  0  0  1"
+                    "matrix":args.transform_matrix
                 }, 
                 {
                     "type":"writers" + args.output_type,
@@ -40,9 +41,12 @@ def main():
 
         ret = subprocess.call(cmd) 
         print(ret)
+        if ret != 0:
+            sys.exit(ret)
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
         print(e)
+        sys.exit(1)
