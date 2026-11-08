@@ -203,6 +203,9 @@ def main():
     parser.add_argument('--remote_io_root', type=str, default='$bin_path:/pcd_pl/', help='remote input, output root folder path', required=False) 
     parser.add_argument('--max_input_file', type=int, default=3, help='input max input file count', required=False)
     parser.add_argument('--option', type=str, default='pcd_to_seg_option.json', help='define segments count, class, grouping', required=False)
+    parser.add_argument('--model_config', type=str, default='configs/randlanet_s3dis.yml', help='model config, relative to this module', required=False)
+    parser.add_argument('--ckpt', type=str, default='logs/randlanet_s3dis_normalvector_20230707_198.pth', help='checkpoint, relative to this module', required=False)
+    parser.add_argument('--ckpt_url', type=str, default='https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_s3dis_area5_202010091333utc.pth', help='downloaded when the checkpoint is missing', required=False)
 
     args = parser.parse_args()        
     args.input = update_remote_input_folder(args.input)
@@ -210,7 +213,7 @@ def main():
 
     print('loading model...')
     dev = get_gpu_device()
-    cfg_file = mpath + "/configs/randlanet_s3dis.yml"
+    cfg_file = os.path.join(mpath, args.model_config)
     cfg = _ml3d.utils.Config.load_from_file(cfg_file)
 
     model = ml3d.models.RandLANet(**cfg.model)
@@ -235,10 +238,9 @@ def main():
     pipeline = ml3d.pipelines.SemanticSegmentation(model, dataset=dataset, device=dev, **cfg.pipeline)
 
     print('loading weights')
-    ckpt_folder = mpath + "/logs/"
-    os.makedirs(ckpt_folder, exist_ok=True)
-    ckpt_path = ckpt_folder + "randlanet_s3dis_normalvector_20230707_198.pth"  # "randlanet_s3dis_20230628_183.pth"  # "randlanet_s3dis_20230620_200.pth" #  "randlanet_s3dis_202010091238.pth" #  "randlanet_s3dis_202201071330utc.pth" # "randlanet_s3dis_202010091238.pth"
-    randlanet_url = "https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_s3dis_area5_202010091333utc.pth"
+    ckpt_path = os.path.join(mpath, args.ckpt)
+    os.makedirs(os.path.dirname(ckpt_path), exist_ok=True)
+    randlanet_url = args.ckpt_url
     if not os.path.exists(ckpt_path):
         cmd = "wget {} -O {}".format(randlanet_url, ckpt_path)
         os.system(cmd)
