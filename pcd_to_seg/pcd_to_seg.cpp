@@ -1,4 +1,6 @@
 #include <iostream>
+#include <algorithm>
+#include <vector>
 #include <pcl/console/parse.h>
 #include <pcl/ModelCoefficients.h>
 #include <pcl/point_types.h>
@@ -44,6 +46,17 @@ void showHelp(char *filename)
 	std::cout << "     --min_points_ratio :  min points ratio" << std::endl;
 }
 
+void warnUnknownOptions(int argc, char *argv[], const std::vector<std::string> &known)
+{
+	// options not read here are silently dropped by pcl::console, so a misspelled SBDL key would go unnoticed
+	for (int i = 1; i < argc; i++)
+	{
+		std::string arg = argv[i];
+		if (arg.rfind("--", 0) == 0 && std::find(known.begin(), known.end(), arg) == known.end())
+			std::cout << "unknown option ignored: " << arg << std::endl;
+	}
+}
+
 int parseCommandLine (int argc, char *argv[])
 {
 	//Show help
@@ -61,6 +74,7 @@ int parseCommandLine (int argc, char *argv[])
 	pcl::console::parse_argument (argc, argv, "--projection", projection_on_plane);
 	pcl::console::parse_argument (argc, argv, "--output_type", filetype);
 	pcl::console::parse_argument (argc, argv, "--min_points_ratio", min_points_ratio);
+	warnUnknownOptions(argc, argv, {"--input", "--output", "--iteration", "--threshold", "--projection", "--output_type", "--min_points_ratio"});
 
 	if(input_filename_.find(".pcd") == std::string::npos)
 		input_filename_ = input_filename_ + ".pcd";

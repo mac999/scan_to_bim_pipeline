@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 using namespace boost::filesystem;
@@ -46,6 +47,17 @@ void showHelp (char *filename)
   std::cout << "     --output_type :  File type(pcd , json / default pcd)" << std::endl;
 }
 
+void warnUnknownOptions(int argc, char *argv[], const std::vector<std::string> &known)
+{
+  // options not read here are silently dropped by pcl::console, so a misspelled SBDL key would go unnoticed
+  for (int i = 1; i < argc; i++)
+  {
+    std::string arg = argv[i];
+    if (arg.rfind("--", 0) == 0 && std::find(known.begin(), known.end(), arg) == known.end())
+      std::cout << "unknown option ignored: " << arg << std::endl;
+  }
+}
+
 void parseCommandLine (int argc, char *argv[])
 {
   //Show help
@@ -61,6 +73,7 @@ void parseCommandLine (int argc, char *argv[])
   pcl::console::parse_argument (argc, argv, "--hull_type", hulltype);
   pcl::console::parse_argument (argc, argv, "--output_type", filetype);
   pcl::console::parse_argument (argc, argv, "--alpha", alpha);
+  warnUnknownOptions(argc, argv, {"--input", "--output", "--hull_type", "--output_type", "--alpha"});
 
   std::cout << "input: " << input_filename_ << std::endl;
   std::cout << "output file tag: " << output_filename_ << std::endl;
