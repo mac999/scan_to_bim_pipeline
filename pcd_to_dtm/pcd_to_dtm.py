@@ -7,7 +7,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str, required=True)
     parser.add_argument('--output', type=str, required=True)
-    parser.add_argument('--pdal_pipeline', type=str, default='pcd_to_dtm_pipeline.json', required=True)
+    parser.add_argument('--pdal_pipeline', type=str, default='pcd_to_dtm_pipeline.json', required=False)   # kept for SBDL compatibility. the pipeline file is written next to the output
     parser.add_argument('--resolution', type=float, default=0.2, required=False)
     parser.add_argument('--classification', type=str, default='building', required=True)
 
@@ -21,7 +21,9 @@ def main():
         outfilename = scan_to_bim_lib.get_pcd_index_filepath(args.output, infile, ".tif")
         res = str(args.resolution)
 
-        temp_las_file = "pcd_to_dtm_transformed.las"
+        output_prefix, ext = os.path.splitext(outfilename)
+        pdal_pipeline = output_prefix + "_pdal.json"
+        temp_las_file = output_prefix + "_transformed.las"
         pipe_data = {
             "pipeline": [
                 infile, 
@@ -43,10 +45,10 @@ def main():
             ]
         }
 
-        with open(args.pdal_pipeline, 'w') as f:
+        with open(pdal_pipeline, 'w') as f:
             json.dump(pipe_data, f)
 
-        cmd = ["pdal", "pipeline", args.pdal_pipeline]
+        cmd = ["pdal", "pipeline", pdal_pipeline]
 
         ret = subprocess.call(cmd)
         print(ret)
