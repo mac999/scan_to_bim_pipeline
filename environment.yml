@@ -1,0 +1,47 @@
+# conda env create -f environment.yml
+# conda activate scan2bim
+# mkdir build && cd build && cmake .. -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DQT_HOST_PATH=$CONDA_PREFIX && make
+name: scan2bim
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pdal
+  - python-pdal
+  - ceres-solver=*=cpu*   # pdal dependency. the gpu build pulls about 1 GB of CUDA libraries
+  - gdal
+  - pcl
+  - libgl-devel      # opengl headers, needed by the vtk that pcl's visualization component finds
+  - libegl-devel
+  - libglx-devel
+  - libopengl-devel
+  - draco=1.5.7      # the version the pdal draco plugin links against
+  - gflags=2.2.2     # the version the pdal trajectory plugin links against
+  - boost-cpp
+  - cmake
+  - make
+  - cxx-compiler
+  - numpy<2.0
+  - scipy
+  - scikit-learn
+  - sympy
+  - pandas
+  - matplotlib
+  - pillow
+  - laspy
+  - trimesh
+  - pyvista<0.45     # 0.45 and later need vtk 9.3.1, newer than the one pcl pins
+  - alphashape
+  - shapely
+  - geopandas
+  - pyproj
+  - rasterio
+  - simplekml
+  - opencv
+  - ifcopenshell
+  - tqdm
+  - pyyaml
+  - pytest
+  - pip
+  - pip:
+      - open3d==0.18.0   # newest aarch64 wheel for python 3.11 that works with numpy 1.x
