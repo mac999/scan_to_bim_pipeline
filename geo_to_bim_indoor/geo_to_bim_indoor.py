@@ -14,6 +14,7 @@ from scipy.spatial import ConvexHull
 lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
 sys.path.append(lib_path)    
 import scan_to_bim_lib
+import plane_polygon
 
 sys.path.insert(0, os.path.dirname(os.getcwd()))
 
@@ -182,7 +183,7 @@ def assign_product(usecase, ifc, product, **kwargs):
 
 IFC_CLASS = {'wall': ('IfcWall', None), 'floor': ('IfcSlab', 'FLOOR'), 'ceiling': ('IfcCovering', 'CEILING')}
 
-def save_ifc(fname, labels, obbs):
+def save_ifc(fname, labels, obbs, meshes=None):
     import ifcopenshell, ifcopenshell.api
     run = ifcopenshell.api.run
 
@@ -205,7 +206,10 @@ def save_ifc(fname, labels, obbs):
             continue
         ifc_class, predefined_type = IFC_CLASS[label]
         element = run("root.create_entity", ifc, ifc_class=ifc_class, name=f'{label} {index}', predefined_type=predefined_type)
-        vertices, faces = get_box_mesh(obb, args.element_thickness)
+        if meshes and meshes[index]:
+            vertices, faces = meshes[index]
+        else:
+            vertices, faces = get_box_mesh(obb, args.element_thickness)
         representation = run("geometry.add_mesh_representation", ifc, context=body, vertices=[vertices], faces=[faces])
         run("geometry.assign_representation", ifc, product=element, representation=representation)
         run("geometry.edit_object_placement", ifc, product=element, matrix=np.eye(4))   # the mesh is in world coordinates
@@ -247,6 +251,48 @@ def geo_to_obj(infile, outfilename):
 
     return label, plane3d, obb
 
+def save_polygon_data(outfilename, ring):
+    ring = [[float(c) for c in p] for p in ring]
+    with open(outfilename + '_polygon.json', 'w') as f:
+        json.dump({'type': 'Polygon', 'coordinates': [ring + ring[:1]]}, f)
+
+def save_polygon_mesh(fname, rings, labels):
+    colors = {'wall': [0.30, 0.47, 0.66], 'floor': [0.61, 0.46, 0.37], 'ceiling': [0.89, 0.34, 0.34]}
+    mesh = o3d.geometry.TriangleMesh()
+    for ring, label in zip(rings, labels):
+        if ring is None:
+            continue
+        part = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector(ring[0]), o3d.utility.Vector3iVector(ring[1]))
+        part.paint_uniform_color(colors.get(label, [0.5, 0.5, 0.5]))
+        mesh += part
+    mesh.compute_vertex_normals()
+    o3d.io.write_triangle_mesh(fname, mesh)
+
+def snap_corners(files, outfilenames, labels):
+    # fit a plane to each segment and extend or trim its outline to the planes next to it,
+    # so that neighbouring elements meet at shared edges
+    segments = [np.asarray(o3d.io.read_point_cloud(f).points) for f in files]
+    planes, polys, edges = plane_polygon.plane_polygons(segments, args.corner_buffer, args.corner_min_angle,
+                                                        args.axis_snap_angle, args.alpha, args.polygon_tolerance,
+                                                        args.corner_reach)
+    print(f'{len(edges)} shared edges between {len(planes)} planes')
+
+    center = np.mean([s.mean(axis=0) for s in segments], axis=0)
+    meshes, faces = [], []
+    for outfilename, label, plane, poly in zip(outfilenames, labels, planes, polys):
+        if poly is None:
+            meshes.append(None)
+            faces.append(None)
+            continue
+        ring = plane_polygon.ring_3d(plane, poly)
+        save_polygon_data(outfilename + '_' + label, ring)
+        meshes.append(plane_polygon.prism(plane, poly, args.element_thickness, plane.origin - center))
+        ring2d = np.asarray(poly.exterior.coords)[:-1]
+        faces.append((ring, plane_polygon.triangulate(ring2d)))
+
+    save_polygon_mesh(args.output + '_polygon.ply', faces, labels)
+    return meshes
+
 def str2bool(value):    # argparse's type=bool treats any non-empty string like 'false' as True
     return str(value).strip().lower() in ('true', '1', 'yes', 'on')
 
@@ -262,6 +308,11 @@ def main():
     parser.add_argument('--alpha', type=float, default=0.0, required=False)   # alpha shape of the segment boundary. 0 gives the convex hull
     parser.add_argument('--output_ifc', type=str2bool, default=True, required=False)
     parser.add_argument('--element_thickness', type=float, default=0.2, required=False)   # minimum thickness of a wall, slab or covering in meters
+    parser.add_argument('--corner_buffer', type=float, default=0.0, required=False)   # max gap in meters closed between neighbouring planes. 0 keeps the box per segment
+    parser.add_argument('--corner_min_angle', type=float, default=30.0, required=False)   # planes closer in angle than this do not share an edge
+    parser.add_argument('--axis_snap_angle', type=float, default=10.0, required=False)   # nearly level or vertical planes are made exactly level or vertical
+    parser.add_argument('--polygon_tolerance', type=float, default=0.05, required=False)   # outline simplification in meters
+    parser.add_argument('--corner_reach', type=float, default=1.0, required=False)   # how far in meters a corner is filled out to the meeting point of two edges
     parser.add_argument('--project_name', type=str, default='Scan to BIM project', required=False)
     parser.add_argument('--site_name', type=str, default='My Site', required=False)
     parser.add_argument('--building_name', type=str, default='My Building', required=False)
@@ -273,18 +324,23 @@ def main():
     files = glob.glob(args.input + "*.pcd")
     print(files)
 
-    labels, plane3ds, obbs = [], [], []
+    labels, plane3ds, obbs, outfilenames = [], [], [], []
     for index, infile in enumerate(files):
         outfilename = scan_to_bim_lib.get_pcd_index_filepath(args.output, infile)
         outfilename, ext = os.path.splitext(outfilename)
 
         label, plane3d, obb = geo_to_obj(infile, outfilename)
+        outfilenames.append(outfilename)
         labels.append(label)
         plane3ds.append(plane3d)
         obbs.append(obb)
 
+    meshes = None
+    if args.corner_buffer > 0 and len(files):
+        meshes = snap_corners(files, outfilenames, labels)
+
     if args.output_ifc and len(obbs):
-        save_ifc(args.output + '.ifc', labels, obbs)
+        save_ifc(args.output + '.ifc', labels, obbs, meshes)
 
 if __name__ == '__main__':
     main()
