@@ -14,7 +14,8 @@ For reference, you can use the [scan to model program (SMP)](https://github.com/
 <img height="200" src="./doc/concept1.JPG"/></BR><img height="150" src="./doc/concept2.JPG"/><img height="150" src="./doc/ifc_building_facade.jpg"/></br>
 <img height="150" src="./doc/perform.PNG"/>
 <img height="150" src="./doc/perform2.PNG"/></br>
-<img height="150" src="./doc/indoor_scan.JPG"/><img height="150" src="./doc/indoor_BIM.PNG"/>
+<img height="150" src="./doc/indoor_scan.JPG"/><img height="150" src="./doc/indoor_BIM.PNG"/></br>
+<img height="200" src="./doc/indoor_corner_polygon.png"/><img height="200" src="./doc/indoor_corner_ifc.png"/>
 </p>
 
 # setup development environment & packages 
