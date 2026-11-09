@@ -174,7 +174,7 @@ SBDL concept diagram and [UML](./doc/SAD.uml) architecture.</br>
 | | 2023.10 - 2023.12 | Indoor stages: deep learning segmentation with RandLA-Net trained on S3DIS (pcd_to_seg_ml, run in docker), segment to geometry by ML (seg_to_geo_ml), bounding boxes with Revit family mapping (pcd_to_bbox), wall and floor mapping (geo_to_bim_indoor). |
 | | 2024.2 | pcd_to_dtm and dtm_to_geo fixes. Options active, log_view, height_building_offset, height_ground_offset, max_building_height. |
 | v0.6 | 2026.7 | Python 3.11, Shapely 2 and NumPy 1.24 support. CMake uses find_package(PCL). Fixes in elevation sampling, the height axis of object classification and point density. |
-| v0.6.1 | 2026.11 | A failed stage stops its pipeline. ifcopenshell 0.8 support. Outdoor IFC keeps map coordinates (IfcMapConversion) and ground elevation. Indoor IFC output (IfcWall, IfcSlab, IfcCovering). Options moved to config.json and stage parameters, see [doc/sbdl.md](./doc/sbdl.md). environment.yml and tests. |
+| v0.6.1 | 2026.11 | A failed stage stops its pipeline. ifcopenshell 0.8 support. Outdoor IFC keeps map coordinates (IfcMapConversion) and ground elevation. Indoor IFC output (IfcWall, IfcSlab, IfcCovering), with planes joined at shared edges and corners (corner_buffer). Options moved to config.json and stage parameters, see [doc/sbdl.md](./doc/sbdl.md). environment.yml and tests. |
 
 <p align="center"><img height="200" src="./doc/indoor_ml.JPG"/><img height="200" src="./doc/indoor_perform1.JPG"/></p>
 

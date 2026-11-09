@@ -126,6 +126,8 @@ Hull of each segment. Writes `<output>_@<n>.pcd` and `.json`.
 
 Labels each segment as wall, floor or ceiling from its normal and height, and writes an IFC file with an `IfcWall`, `IfcSlab` (FLOOR) or `IfcCovering` (CEILING) per segment.
 
+With `corner_buffer` above 0, each segment is fitted to a plane and outlined in it. Where two planes come within the buffer of their intersection line, both outlines are extended or trimmed to that line, and corners are filled out to the point where the edges meet. Each outline is saved as `<output>_@<index>_<label>_polygon.json` (GeoJSON Polygon, 3D), all of them as `<output>_polygon.ply`, and the IFC elements are the outlines extruded by `element_thickness` away from the room center. A plane that crosses another one in its middle (a table top against a wall) is left as it is.
+
 | parameter | default | |
 |---|---|---|
 | `wall_min_angle`, `wall_max_angle` | 30, 150 | normal angle to +Z in degrees for a wall |
@@ -133,6 +135,11 @@ Labels each segment as wall, floor or ceiling from its normal and height, and wr
 | `floor_max_height` | 0.5 | a horizontal segment below this z is a floor, otherwise a ceiling |
 | `alpha` | 0.0 | alpha shape of the boundary. 0 gives the convex hull |
 | `element_thickness` | 0.2 | minimum thickness of an element in meters |
+| `corner_buffer` | 0.0 | largest gap in meters closed between neighbouring planes. 0 keeps one box per segment |
+| `corner_min_angle` | 30 | planes closer in angle than this do not share an edge |
+| `axis_snap_angle` | 10 | planes within this angle of level or vertical are made exactly level or vertical |
+| `polygon_tolerance` | 0.05 | outline simplification in meters |
+| `corner_reach` | 1.0 | distance in meters over which a corner is filled out to the point where two edges meet |
 | `output_ifc` | true | |
 | `project_name`, `site_name`, `building_name`, `storey_name` | | IFC names |
 | `log_view` | false | show plots |
