@@ -161,6 +161,18 @@ For large clouds pcd_to_cylinder searches a grid of tiles, each with a margin ar
 python pcd_to_cylinder/pcd_to_cylinder.py --input ./output/mep/clean --output ./output/mep/cyl --tiles "[2, 2]" --tile_workers 4</br>
 On the sample, 2 x 2 tiles in 4 processes give the same 78 pipes and 8 elbows in 29 s instead of 55 s. See the large point clouds section of [doc/pipe.md](./doc/pipe.md).</br>
 
+# options and configuration files
+Each stage is a program, and the keys of a stage in the SBDL file are its command line options, so a stage can also be run by itself with `--input`, `--output` and the same parameters. Tunable values and standards are kept out of the code:</br>
+
+| file | sets |
+|---|---|
+| pipeline/config.json | paths, input extensions, SBDL file suffix |
+| `<input name>_scan_to_bim.json` | pipelines and stage parameters (SBDL) |
+| cylinder_to_pipe/pipe_standard.json | nominal pipe sizes, elbow angles and bend radii |
+| geo_to_bim_pipe/pipe_mapping_rule.json | IFC class, type, name and properties of pipes and elbows by rule |
+
+[doc/cli.md](./doc/cli.md) has the options of app.py, how to run one stage, the scripts and the formats of these files. The parameters of every stage are in [doc/sbdl.md](./doc/sbdl.md), and the pipe stages with their standard and rule files in [doc/pipe.md](./doc/pipe.md).</br>
+
 # test
 python -m pytest tests</br>
 The tests build small synthetic rasters and point clouds. Tests that need PDAL, GDAL, Open3D, ifcopenshell or the C++ build are skipped when those are missing.</br>
