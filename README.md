@@ -11,12 +11,12 @@ For reference, you can use the [scan to model program (SMP)](https://github.com/
 4. Binding BIM objects with geometry information and property sets.</br>
 </br>
 <p align="center">
-<img height="200" src="./doc/concept1.JPG"/></BR><img height="150" src="./doc/concept2.JPG"/><img height="150" src="./doc/ifc_building_facade.jpg"/></br>
-<img height="150" src="./doc/perform.PNG"/>
-<img height="150" src="./doc/perform2.PNG"/></br>
-<img height="150" src="./doc/indoor_scan.JPG"/><img height="150" src="./doc/indoor_BIM.PNG"/></br>
-<img height="200" src="./doc/indoor_corner_polygon.png"/><img height="200" src="./doc/indoor_corner_ifc.png"/></br>
-<img height="200" src="./doc/pipe_scan.png"/><img height="200" src="./doc/pipe_bim.png"/>
+<img width="720" src="./doc/concept1.JPG"/></br>
+<img width="360" src="./doc/concept2.JPG"/><img width="360" src="./doc/ifc_building_facade.jpg"/></br>
+<img width="360" src="./doc/perform.PNG"/><img width="360" src="./doc/perform2.PNG"/></br>
+<img width="364" src="./doc/indoor_scan.JPG"/><img width="356" src="./doc/indoor_BIM.PNG"/></br>
+<img width="360" src="./doc/indoor_corner_polygon.png"/><img width="360" src="./doc/indoor_corner_ifc.png"/></br>
+<img width="240" src="./doc/pipe_scan.png"/><img width="240" src="./doc/pipe_cylinders.png"/><img width="240" src="./doc/pipe_ifc.png"/>
 </p>
 
 # setup development environment & packages 
@@ -101,7 +101,7 @@ Before running, install requirements_simple.txt (or requirements.txt) including 
 2. Download the input sample files and copy them into the ./input folder. Refer to the [sample dataset](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd).</br>
 3. Run app.py as below.</br>
 python ./pipeline/app.py</br>
-<img height="150" src="./doc/result_outdoor.PNG"/></br>
+<img width="720" src="./doc/result_outdoor.PNG"/></br>
 4. Or design a pipeline using SBDL (Scan to BIM Description Language) formatted as JSON like below.</br>
   pipeline.[name]={stage*}</br>
   stage={module_type, parameters}</br>
@@ -148,8 +148,9 @@ python ./pipeline/app.py</br>
 </br>
 app.py resolves the paths in config.json from the repository root, so it runs from any directory. The parameters of each stage are listed in [doc/sbdl.md](./doc/sbdl.md). The conference_room1 sample in ./input has a rule-based indoor pipeline that writes an IFC file:</br>
 python ./pipeline/app.py --input_path "./input/conference_room1/*.pcd" --stage indoor_rule</br>
-Pipes and elbows of an MEP scan (LAS, LAZ or PCD) are extracted by the pipe_rule pipeline, which writes IfcPipeSegment and IfcPipeFitting elements. Nominal pipe sizes and elbow rules are in [cylinder_to_pipe/pipe_standard.json](./cylinder_to_pipe/pipe_standard.json), the IFC mapping rules in [geo_to_bim_pipe/pipe_mapping_rule.json](./geo_to_bim_pipe/pipe_mapping_rule.json). For a scan placed as ./input/kict_mep_zero_en_bdlg_parts/kict_mep_zero_en_bdlg_parts.laz:</br>
+Pipes and elbows of an MEP scan (LAS, LAZ or PCD) are extracted by the pipe_rule pipeline, which writes IfcPipeSegment and IfcPipeFitting elements. Nominal pipe sizes and elbow rules are in [cylinder_to_pipe/pipe_standard.json](./cylinder_to_pipe/pipe_standard.json), the IFC mapping rules in [geo_to_bim_pipe/pipe_mapping_rule.json](./geo_to_bim_pipe/pipe_mapping_rule.json). The sample scan in ./input/kict_mep_zero_en_bdlg_parts is part of the mechanical room of the KICT zero energy building. The command line of each stage, results on the sample, options and the standard and rule files are described in [doc/pipe.md](./doc/pipe.md).</br>
 python ./pipeline/app.py --input_path "./input/kict_mep_zero_en_bdlg_parts/*.laz" --stage pipe_rule</br>
+106 cylinders, 78 pipes and 8 elbows are found in about a minute; the IFC file has 78 IfcPipeSegment and 8 IfcPipeFitting.</br>
 
 # test
 python -m pytest tests</br>
@@ -167,7 +168,7 @@ Top 6 Free LiDAR Data Sources [LiDAR files](https://gisgeography.com/top-6-free-
 
 # architecture
 SBDL concept diagram and [UML](./doc/SAD.uml) architecture.</br>
-<p align="center"><img height="150" src="./doc/uml3.PNG"/><img height="150" src="./doc/uml1.PNG"/><img height="150" src="./doc/uml2.PNG"/></p>
+<p align="center"><img width="219" src="./doc/uml3.PNG"/><img width="265" src="./doc/uml1.PNG"/><img width="236" src="./doc/uml2.PNG"/></p>
 
 # version history
 | version | date | changes |
@@ -179,9 +180,9 @@ SBDL concept diagram and [UML](./doc/SAD.uml) architecture.</br>
 | | 2024.2 | pcd_to_dtm and dtm_to_geo fixes. Options active, log_view, height_building_offset, height_ground_offset, max_building_height. |
 | v0.6 | 2026.7 | Python 3.11, Shapely 2 and NumPy 1.24 support. CMake uses find_package(PCL). Fixes in elevation sampling, the height axis of object classification and point density. |
 | v0.6.1 | 2026.11 | A failed stage stops its pipeline. ifcopenshell 0.8 support. Outdoor IFC keeps map coordinates (IfcMapConversion) and ground elevation. Indoor IFC output (IfcWall, IfcSlab, IfcCovering), with planes joined at shared edges and corners (corner_buffer). Options moved to config.json and stage parameters, see [doc/sbdl.md](./doc/sbdl.md). environment.yml and tests. |
-| v0.7 | 2026.11 | Pipe stages after Kang et al. 2020 (Appl. Sci. 10, 7422): RANSAC cylinder extraction (pcd_to_cylinder), straight pipes and elbows with nominal sizes (cylinder_to_pipe), IfcPipeSegment and IfcPipeFitting by mapping rules (geo_to_bim_pipe). Pipe standard and mapping rules are JSON files. pcd_to_clean reads LAS and LAZ. |
+| v0.7 | 2026.11 | Pipe stages after Kang et al. 2020 (Appl. Sci. 10, 7422): RANSAC cylinder extraction (pcd_to_cylinder), straight pipes and elbows with nominal sizes (cylinder_to_pipe), IfcPipeSegment and IfcPipeFitting by mapping rules (geo_to_bim_pipe). Pipe standard and mapping rules are JSON files. pcd_to_clean reads LAS and LAZ. MEP sample scan of the KICT zero energy building, see [doc/pipe.md](./doc/pipe.md). |
 
-<p align="center"><img height="200" src="./doc/indoor_ml.JPG"/><img height="200" src="./doc/indoor_perform1.JPG"/></p>
+<p align="center"><img width="309" src="./doc/indoor_ml.JPG"/><img width="411" src="./doc/indoor_perform1.JPG"/></p>
 
 Planned: MLOps for outdoor object training, SBDL authoring with visual flow programming or an LLM, a Revit plugin that builds elements from the pcd_to_bbox family mapping, and a scan data processing app on top of the pipeline.</br>
 
