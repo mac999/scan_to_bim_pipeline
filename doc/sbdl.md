@@ -11,7 +11,7 @@ An SBDL file is a JSON object. Each key that starts with `pipeline.` is a pipeli
 }
 ```
 
-`pipeline/app.py` looks for `<input name>_scan_to_bim.json` next to each input file (the suffix is `pipeline_tag` in `pipeline/config.json`), or uses the file given with `--pipeline`. `--stage <regex>` limits the run to the matching pipelines, for example `--stage indoor_rule`.
+`pipeline/app.py` looks for `<input name>_scan_to_bim.json` next to each input file (the suffix is `pipeline_tag` in `pipeline/config.json`), or uses the file given with `--pipeline`. `--stage <regex>` limits the run to the matching pipelines, for example `--stage indoor_rule`. All options of app.py and the configuration files are listed in [cli.md](./cli.md).
 
 ## How a stage runs
 
