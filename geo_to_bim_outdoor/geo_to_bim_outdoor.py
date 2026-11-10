@@ -1,11 +1,9 @@
 # title: geo_to_bim for scan to BIM
 # created date: 2022.5.10, taewook kang, laputa99999@gmail.com
 # 
-import os, sys, re, json, glob, numpy, uuid, argparse, trimesh
-import numpy as np, pandas as pd, matplotlib.pyplot as plt, ifcopenshell
+import os, sys, re, json, numpy, uuid, argparse
+import numpy as np, pandas as pd, ifcopenshell
 import ifcopenshell.api
-from math import sin, cos
-# import ifc_building
 
 run = ifcopenshell.api.run
 
@@ -15,70 +13,6 @@ def assign_product(usecase, ifc, product, **kwargs):
         return run(usecase, ifc, products=[product], **kwargs)
     except TypeError:
         return run(usecase, ifc, product=product, **kwargs)
-
-def create_basic_wall(self):
-    length = self.convert_si_to_unit(self.settings["length"])
-    thickness = self.convert_si_to_unit(self.settings["thickness"])
-    thickness *= 1 / cos(self.settings["x_angle"])
-    points = (
-        (0.0, 0.0),
-        (0.0, thickness),
-        (length, thickness),
-        (length, 0.0),
-        (0.0, 0.0),
-    )
-    if self.file.schema == "IFC2X3":
-        curve = self.file.createIfcPolyline([self.file.createIfcCartesianPoint(p) for p in points])
-    else:
-        curve = self.file.createIfcIndexedPolyCurve(self.file.createIfcCartesianPointList2D(points), None, False)
-    if self.settings["x_angle"]:
-        extrusion_direction = self.file.createIfcDirection(
-            (0.0, sin(self.settings["x_angle"]), cos(self.settings["x_angle"]))
-        )
-    else:
-        extrusion_direction = self.file.createIfcDirection((0.0, 0.0, 1.0))
-    extrusion = self.file.createIfcExtrudedAreaSolid(
-        self.file.createIfcArbitraryClosedProfileDef("AREA", None, curve),
-        self.file.createIfcAxis2Placement3D(
-            self.file.createIfcCartesianPoint((0.0, self.convert_si_to_unit(self.settings["offset"]), 0.0)),
-            self.file.createIfcDirection((0.0, 0.0, 1.0)),
-            self.file.createIfcDirection((1.0, 0.0, 0.0)),
-        ),
-        extrusion_direction,
-        self.convert_si_to_unit(self.settings["height"]) * (1 / cos(self.settings["x_angle"])),
-    )
-    if self.settings["booleans"]:
-        extrusion = self.apply_booleans(extrusion)
-    if self.settings["clippings"]:
-        extrusion = self.apply_clippings(extrusion)
-    return extrusion
-
-def create_building(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0):
-    model = ifcopenshell.file() # TBD. https://blenderbim.org/docs-python/ifcopenshell-python/code_examples.html
-    project = run("root.create_entity", model, ifc_class="IfcProject", name="My Project")
-    run("unit.assign_unit", model)  # Assigning without arguments defaults to metric units
-    context = run("context.add_context", model, context_type="Model")   # Let's create a modeling geometry context, so we can store 3D geometry (note: IFC supports 2D too!)
-    body = run("context.add_context", model, context_type="Model", context_identifier="Body", target_view="MODEL_VIEW", parent=context)
-
-    # Create a site, building, and storey. Many hierarchies are possible.
-    site = run("root.create_entity", model, ifc_class="IfcSite", name="My Site")
-    building = run("root.create_entity", model, ifc_class="IfcBuilding", name="Building A")
-    storey = run("root.create_entity", model, ifc_class="IfcBuildingStorey", name="Ground Floor")
-
-    # the site is our top level location, assign it to the project. 
-    assign_product("aggregate.assign_object", model, relating_object=project, product=site)
-    assign_product("aggregate.assign_object", model, relating_object=site, product=building)
-    assign_product("aggregate.assign_object", model, relating_object=building, product=storey)
-
-    # Create wall
-    wall = run("root.create_entity", model, ifc_class="IfcWall")
-    representation = run("geometry.add_wall_representation", model, context=body, length=5, height=3, thickness=0.2)    # Add a new wall-like body geometry, 5 meters long, 3 meters high, and 200mm thick
-    run("geometry.assign_representation", model, product=wall, representation=representation)   # Assign our new body geometry back to our wall
-
-    assign_product("spatial.assign_container", model, relating_structure=storey, product=wall) # Place our wall in the ground floor
-
-    model.write("model.ifc")
-    pass
 
 def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.0, ground = 0.0):
     ifc_points = []
@@ -96,10 +30,6 @@ def create_swept_solid(ifc, subcontext, storey, polygon, pset, bx = 0.0, by = 0.
     direction = ifc.createIfcDirection([0.0, 0.0, 1.0]) # Z positive up direction
     solid = ifc.createIfcExtrudedAreaSolid(profile, axis, direction, pset['elevation'])   # extrude the profile with elevation
     shape = ifc.createIfcShapeRepresentation(subcontext, "Body", "SweptSolid", [solid])  # solid needs to be put in a shape
-
-    # placement
-    local_axis = ifc.createIfcAxis2Placement3D(ifc.createIfcCartesianPoint((0.0, 0.0, 0.0)), None, None)
-    localplacement = ifc.createIfcLocalPlacement(axis, local_axis)
 
     # create an mass using building element proxy
     element = run("root.create_entity", ifc, ifc_class="IfcBuildingElementProxy", name="building from 3D scan")
@@ -214,7 +144,6 @@ def geo_to_bim(in_fname, out_fname, bx, by, epsg = None, project_name = "Scan to
             polygon = polygon.replace('(', '[')
             polygon = polygon.replace(')', ']')
             polygon = json.loads(polygon)
-            elevation = float(row['elevation'])
             
             building = run("root.create_entity", ifc, ifc_class="IfcBuilding", name="My Building")
             assign_product("aggregate.assign_object", ifc, product=building, relating_object=site)
@@ -238,33 +167,11 @@ def geo_to_bim(in_fname, out_fname, bx, by, epsg = None, project_name = "Scan to
         print(e)
         sys.exit(1)
 
-def intersect_mesh(args):
-    mesh = trimesh.Trimesh(vertices=[[0, 0, 0], [0, 0, 10], [0, 10, 0]],
-                        faces=[[0, 1, 2]])
-
-    plane_normal = [0, 0, 1]
-    plane_origin = [0, 0, 6]
-    isect, face_inds = trimesh.intersections.mesh_plane(mesh, plane_normal, plane_origin, return_faces=True)
-    ints = np.array(*isect)
-    print(ints)
-    print(ints[:, 1])
-
-    ax = plt.axes(projection='3d')
-    ax.plot(ints[:, 0], ints[:, 1], ints[:, 2], 'r') # https://note.nkmk.me/python-slice-usage/, https://thispointer.com/python-numpy-select-rows-columns-by-index-from-a-2d-ndarray-multi-dimension/
-    ax.plot_trisurf(mesh.vertices[:, 0], mesh.vertices[:,1], triangles=mesh.faces, Z=mesh.vertices[:,2], alpha=0.5)
-    # ax.add_collection(Poly3DCollection([plane1], alpha=0.5, edgecolors='r'))
-    plt.show()
-
-    # https://compas.dev/examples/example-mesh-subdivision-schemes/doc.html
-    # https://towardsdatascience.com/5-step-guide-to-generate-3d-meshes-from-point-clouds-with-python-36bad397d8ba
-    # https://trimsh.org/examples/quick_start.html
-    # https://githubhot.com/repo/mikedh/trimesh/issues/1492
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str, required=True)
     parser.add_argument('--output', type=str, required=True)
-    parser.add_argument('--link_pset', default="link_propertyset.json", type=str, required=False)
+    parser.add_argument('--link_pset', default="link_propertyset.json", type=str, required=False)    # not read. kept so older SBDL files still parse
     parser.add_argument('--base_point', default="", type=str, required=False)   # [x, y] subtracted from map coordinates. empty: lower left of the footprints
     parser.add_argument('--crs', default="", type=str, required=False)   # EPSG code. empty: read from the dtm_to_geo projection file
     parser.add_argument('--project_name', default="Scan to BIM project", type=str, required=False)
