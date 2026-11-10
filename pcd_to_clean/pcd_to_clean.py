@@ -3,33 +3,12 @@
 # date: 2022.5.
 # desc:  
 
-import os, sys, json, glob
+import os, sys, glob
 import open3d as o3d
 import argparse
-import numpy as np
 lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
 sys.path.append(lib_path)    
 import scan_to_bim_lib
-
-def importJson(fname): 
-    data = []
-    with open(fname) as f:
-        data = json.load(f)
-    print(data)
-
-    return data
-
-def select_down_sample(cloud, ind):
-    for i in ind:
-        cloud[i]
-
-def display_inlier_outlier(cloud, ind):
-    inlier_cloud = cloud.select_by_index(ind) 
-    outlier_cloud = cloud.select_by_index(ind, invert=True) 
-
-    outlier_cloud.paint_uniform_color([1, 0, 0])
-    inlier_cloud.paint_uniform_color([0.8, 0.8, 0.8])
-    o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud])
 
 def remove_outlier(fname, args):
     pcd = scan_to_bim_lib.read_point_cloud(fname)
@@ -45,11 +24,9 @@ def remove_outlier(fname, args):
     if args.stat_neighbors != None and args.stat_std_ratio != None and args.stat_neighbors > 0:   # 0 disables the filter
         cl, ind = cl.remove_statistical_outlier(nb_neighbors = args.stat_neighbors,
                                                             std_ratio = args.stat_std_ratio)
-        # display_inlier_outlier(cl, ind)
 
     if args.nb_radius_points != None and args.nb_radius_points > 0:   # 0 disables the filter
         cl, ind = cl.remove_radius_outlier(nb_points = args.nb_radius_points, radius = args.nb_radius)
-        # display_inlier_outlier(cl, ind)
 
     return cl
 
@@ -63,8 +40,6 @@ def main():
     parser.add_argument('--stat_std_ratio', type=float, default=1.0, required=False)
     parser.add_argument('--nb_radius_points', type=int, default=50, required=False)
     parser.add_argument('--nb_radius', type=float, default=0.1, required=False)
-    # args = parser.parse_args(["--voxel_down_size", "0.02", "--uniform_down_sample", "5", "--nb_neighbors", "20", "--nb_std_ratio", "2.0", "--nb_radius_points", "10", "--nb_radius", "0.05", "--input", "/home/ktw/Projects/pcd_pl/output/pcd_to_seg", "--output", "/home/ktw/Projects/pcd_pl/output/seg_to_seg"])
-    # args = parser.parse_args(["--nb_neighbors", "50", "--nb_std_ratio", "1.0", "--input", "/home/ktw/Projects/pcd_pl/output/pcd_to_seg", "--output", "/home/ktw/Projects/pcd_pl/output/seg_to_seg"])
     args = parser.parse_args() # ["--voxel_down_size", "0.02", "--nb_radius_points", "100", "--nb_radius", "0.2", "--input", "/home/ktw/Projects/pcd_pl/output/pcd_to_seg*.pcd", "--output", "/home/ktw/Projects/pcd_pl/output/pcd_to_clean"])
 
     try:
