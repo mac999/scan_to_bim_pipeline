@@ -77,6 +77,12 @@ cmake ..</br>
 make</br>
 </br>
 If there are dependency errors with requirements.txt, use requirements_simple.txt.</br>
+
+Or build and run the samples with the scripts in the root folder, build.sh and run_samples.sh on Linux and macOS, build.bat and run_samples.bat on Windows. build installs requirements_simple.txt first with --install and puts the C++ stages in ./bin, using the PCL of the active conda environment (CONDA_PREFIX) or of vcpkg (VCPKG_ROOT, Windows). run_samples runs the indoor_rule pipeline on conference_room1 and the pipe_rule pipeline on kict_mep_zero_en_bdlg_parts, or one of them with indoor or pipe, and prints the IFC file of each. The interpreter is taken from PYTHON, default python.</br>
+./build.sh --install</br>
+./run_samples.sh</br>
+build.bat --install</br>
+run_samples.bat pipe</br>
 </br>
 With conda, [environment.yml](./environment.yml) installs PDAL, GDAL, PCL and the python packages into one environment (tested on Ubuntu 24.04 arm64).</br>
 conda env create -f environment.yml</br>
