@@ -20,6 +20,7 @@
             "max_gap": 0.05,
             "min_coverage": 0.25,
             "axis_snap_angle": 5.0,
+            "pipe_angles": [45, 90],
             "seed": 0
         },
         {
@@ -31,7 +32,8 @@
             "pipe_standard": "cylinder_to_pipe/pipe_standard.json",
             "nominal_tolerance": 0.005,
             "elbow_angle_tolerance": 10.0,
-            "elbow_reach": 0.5
+            "elbow_reach": 0.5,
+            "min_length_ratio": 1.5
         },
         {
             "type": "geo_to_bim_pipe",
