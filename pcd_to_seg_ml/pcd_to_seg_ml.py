@@ -222,8 +222,8 @@ def main():
     output_folder = update_remote_output_folder(args.output)    
     pkl_output_folder = output_folder + '/original_pkl/'
     try:
-        shutil.rmtree(pkl_output_folder)
-        os.mkdir(pkl_output_folder)
+        shutil.rmtree(pkl_output_folder, ignore_errors=True)     # missing on the first run
+        os.makedirs(pkl_output_folder)
         convert_pcd_to_pkl(args.input + "*.pcd", pkl_output_folder) # output = /pcd_docker/*.pkl    
         chmod(output_folder)
     except Exception as e:
