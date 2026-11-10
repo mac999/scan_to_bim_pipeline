@@ -108,3 +108,19 @@ def test_config_paths_resolve_from_repository_root(tmp_path):
     assert conf.bin_path == ROOT + '/'
     assert conf.lib_path == ROOT + '/lib/'
     assert conf.root_path == ROOT + '/pipeline/'
+
+def test_docker_stage_maps_paths_into_the_container(tmp_path):
+    # stands in for docker/docker_ml_gpu.sh: records the command the container would get.
+    # bin_path is the repository root, which holds input/ and output/ and is mounted at /pcd_pl
+    os.makedirs(tmp_path / 'docker')
+    (tmp_path / 'docker' / 'fake_docker.sh').write_text('echo "$@" > "$(dirname "$0")/args.txt"\n')
+    stage = {'type': 'pcd_to_seg_ml', 'remote_io_root': '$bin_path:/pcd_pl/',
+             'cmd': 'bash $bin_path/docker/fake_docker.sh open3d_gpu python /pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py',
+             'note': 'not forwarded'}
+    ret = run_app(tmp_path, [stage], bin_path=str(tmp_path) + '/')
+    assert ret.returncode == 0, ret.stdout + ret.stderr
+    args = (tmp_path / 'docker' / 'args.txt').read_text().split()
+    assert args[:3] == ['open3d_gpu', 'python', '/pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py']
+    assert args[args.index('--input') + 1] == '/pcd_pl/input/sample.pcd'
+    assert args[args.index('--output') + 1] == '/pcd_pl/output/sample/pcd_to_seg_ml/pcd_to_seg_ml'
+    assert '--note' not in args
