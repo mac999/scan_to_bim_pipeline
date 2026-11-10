@@ -151,7 +151,7 @@ cylinder_to_pipe_log.json
 `elevation` is the angle of the axis from the level plane and `azimuth` its plan direction from the grid, both in degrees. The points of each rejected cylinder are in the `file` next to the log; those of a dropped pipe are in the `_@<n>.pcd` files of its `cylinders`. The reasons are `direction` (pcd_to_cylinder), `elbow_piece`, `short` (below `min_pipe_length`) and `length_ratio` (cylinder_to_pipe). A surface found again from other seeds is listed once.
 
 <p align="center">
-<img width="397" src="./pipe_ifc_no_rules.png"/><img width="323" src="./pipe_ifc.png"/>
+<img width="360" src="./pipe_ifc_no_rules.png"/><img width="360" src="./pipe_ifc_rules.png"/>
 </p>
 
 Without rules (left) and with them (right).
