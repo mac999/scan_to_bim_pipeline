@@ -16,12 +16,10 @@
             "height_building_offset": 3.0,
             "height_ground_offset": 3.0, 
             "max_building_height": 100.0,            
-            "output_dataset": "dimension.csv",
-            "output_pset": "json"
+            "output_dataset": "dimension.csv"
         },
         {
             "type":"geo_to_bim_outdoor",
-            "link_pset": "link_propertyset.json",
             "base_point": [724840.0, 6181000.0]
         }
     ]

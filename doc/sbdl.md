@@ -87,7 +87,6 @@ Reads `<input>_dimension.csv` and writes one extruded `IfcBuildingElementProxy` 
 | `crs` | from `<input>_projection.txt` | EPSG code for `IfcMapConversion` |
 | `project_name` | Scan to BIM project | |
 | `site_name` | My Site | |
-| `link_pset` | | not used yet |
 
 ### pcd_to_seg (C++)
 
