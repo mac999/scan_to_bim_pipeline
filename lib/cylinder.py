@@ -201,3 +201,126 @@ def detect(points, normals, min_radius, max_radius, tolerance=0.005, normal_angl
         if log:
             log(f'cylinder {len(found) - 1}: r={cyl.radius:.3f} length={cyl.length:.2f} points={len(index)} coverage={cyl.coverage:.2f}')
     return found, np.flatnonzero(alive)
+
+# tiled detection. each tile is searched with a margin around it, so a cylinder that crosses the tile
+# border is seen with at least the margin of its length. pieces of one cylinder found in neighbouring
+# tiles are joined, refitted and checked once more against the thresholds of the whole cloud.
+
+def tile_boxes(points, tiles, overlap):
+    lo, hi = points.min(axis=0), points.max(axis=0)
+    counts = list(tiles) + [1] * (3 - len(tiles))
+    edges = [np.linspace(lo[a], hi[a], counts[a] + 1) for a in range(3)]
+    boxes = []
+    for i in range(counts[0]):
+        for j in range(counts[1]):
+            for k in range(counts[2]):
+                core_lo = np.array([edges[0][i], edges[1][j], edges[2][k]])
+                core_hi = np.array([edges[0][i + 1], edges[1][j + 1], edges[2][k + 1]])
+                boxes.append((core_lo - overlap, core_hi + overlap))
+    return boxes
+
+def _detect_tile(job):
+    index, points, normals, params = job
+    found, _ = detect(points, normals, **params)
+    for c in found:
+        c.inliers = index[c.inliers]
+    return found
+
+def same_cylinder(a, b, angle, offset, radius_tolerance, gap):
+    if abs(a.axis @ b.axis) < np.cos(np.radians(angle)) or abs(a.radius - b.radius) > radius_tolerance:
+        return False
+    if max(a.distance(np.array([b.start, b.end])).max(), b.distance(np.array([a.start, a.end])).max()) > offset:
+        return False
+    ta = sorted([(a.start - a.point) @ a.axis, (a.end - a.point) @ a.axis])
+    tb = sorted([(b.start - a.point) @ a.axis, (b.end - a.point) @ a.axis])
+    return max(ta[0], tb[0]) - min(ta[1], tb[1]) <= gap
+
+def longest_run(cyl, index, points, max_gap):
+    t = (points[index] - cyl.point) @ cyl.axis
+    order = np.argsort(t)
+    cuts = np.r_[0, np.where(np.diff(t[order]) > max_gap)[0] + 1, len(t)]
+    k = np.argmax(np.diff(cuts))
+    return index[order[cuts[k]:cuts[k + 1]]]
+
+def stitch(pieces, points, normals, min_radius, max_radius, tolerance, normal_angle, min_points, min_length,
+           max_gap, min_coverage, axis_snap_angle, merge_angle=5.0):
+    group = list(range(len(pieces)))
+    def root(i):
+        while group[i] != i:
+            i = group[i]
+        return i
+    for i in range(len(pieces)):
+        for j in range(i + 1, len(pieces)):
+            a, b = pieces[i], pieces[j]
+            if same_cylinder(a, b, merge_angle, max(2 * tolerance, 0.2 * a.radius), 2 * tolerance, max_gap):
+                group[root(j)] = root(i)
+    groups = {}
+    for i in range(len(pieces)):
+        groups.setdefault(root(i), []).append(pieces[i])
+
+    cos_normal = np.cos(np.radians(normal_angle))
+    candidates = []
+    for members in groups.values():
+        cyl = max(members, key=lambda c: len(c.inliers))
+        index = np.unique(np.concatenate([c.inliers for c in members]))
+        if len(members) > 1:
+            cyl = refine(points[index], normals[index], cyl, axis_snap_angle)
+            index = index[inlier_mask(cyl, points[index], normals[index], 2 * tolerance, cos_normal)]
+            if len(index):
+                index = longest_run(cyl, index, points, max_gap)
+        candidates.append((cyl, index))
+
+    # a point found by two cylinders stays with the larger one
+    taken = np.zeros(len(points), bool)
+    found = []
+    for cyl, index in sorted(candidates, key=lambda c: -len(c[1])):
+        index = index[~taken[index]]
+        if len(index) < min_points or not min_radius <= cyl.radius <= max_radius:
+            continue
+        t = (points[index] - cyl.point) @ cyl.axis
+        if t.max() - t.min() < min_length:
+            continue
+        cyl.coverage = coverage(cyl, points[index])
+        if cyl.coverage < min_coverage:
+            continue
+        cyl.start, cyl.end = cyl.point + cyl.axis * t.min(), cyl.point + cyl.axis * t.max()
+        cyl.inliers = index
+        taken[index] = True
+        found.append(cyl)
+    return found
+
+def detect_tiled(points, normals, min_radius, max_radius, tolerance=0.005, normal_angle=20.0, min_points=200,
+                 min_length=0.1, max_gap=0.05, min_coverage=0.25, axis_snap_angle=0.0, hypotheses=50,
+                 max_failures=200, seed=0, tiles=(1, 1), overlap=0.0, workers=1, log=None):
+    params = dict(min_radius=min_radius, max_radius=max_radius, tolerance=tolerance, normal_angle=normal_angle,
+                  min_points=min_points, min_length=min_length, max_gap=max_gap, min_coverage=min_coverage,
+                  axis_snap_angle=axis_snap_angle, hypotheses=hypotheses, max_failures=max_failures)
+    points = np.asarray(points, float)
+    normals = np.asarray(normals, float)
+    if int(np.prod(tiles)) <= 1:
+        return detect(points, normals, seed=seed, log=log, **params)
+    if overlap <= 0:
+        overlap = max(min_length, 2 * max_radius) + max_gap
+    jobs = []
+    for k, (lo, hi) in enumerate(tile_boxes(points, tiles, overlap)):
+        index = np.flatnonzero(np.all((points >= lo) & (points <= hi), axis=1))
+        if len(index) >= min_points:
+            jobs.append((index, points[index], normals[index], dict(params, seed=seed + k)))
+    if workers > 1:
+        from concurrent.futures import ProcessPoolExecutor
+        with ProcessPoolExecutor(workers) as pool:
+            results = list(pool.map(_detect_tile, jobs))
+    else:
+        results = [_detect_tile(job) for job in jobs]
+    pieces = [c for found in results for c in found]
+    if log:
+        log(f'{len(jobs)} tiles, overlap {overlap:.2f}, {len(pieces)} pieces')
+    found = stitch(pieces, points, normals, min_radius, max_radius, tolerance, normal_angle, min_points,
+                   min_length, max_gap, min_coverage, axis_snap_angle)
+    alive = np.ones(len(points), bool)
+    for c in found:
+        alive[c.inliers] = False
+    if log:
+        for k, c in enumerate(found):
+            log(f'cylinder {k}: r={c.radius:.3f} length={c.length:.2f} points={len(c.inliers)} coverage={c.coverage:.2f}')
+    return found, np.flatnonzero(alive)

@@ -40,6 +40,9 @@ def main():
     parser.add_argument('--hypotheses', type=int, default=50)             # hypotheses scored per seed point
     parser.add_argument('--max_failures', type=int, default=200)          # stop after this many seed points in a row give nothing
     parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--tiles', type=str, default='[1, 1]')            # tiles along x, y (and z). [1, 1] searches the whole cloud at once
+    parser.add_argument('--tile_overlap', type=float, default=0.0)        # margin around a tile. 0 takes max(min_length, 2 x max_radius) + max_gap
+    parser.add_argument('--tile_workers', type=int, default=1)            # tiles searched in parallel
     args = parser.parse_args()
 
     files = sorted(f for f in glob.glob(args.input + "*") if os.path.splitext(f)[1].lower() in ('.pcd', '.ply', '.las', '.laz', '.xyz'))
@@ -54,10 +57,10 @@ def main():
     print(f'{len(points)} points')
 
     start = time.time()
-    found, residual = cylinder.detect(points, normals, args.min_radius, args.max_radius, args.distance_tolerance,
-                                      args.normal_angle, args.min_points, args.min_length, args.max_gap,
-                                      args.min_coverage, args.axis_snap_angle, args.hypotheses, args.max_failures,
-                                      args.seed, log=print)
+    found, residual = cylinder.detect_tiled(points, normals, args.min_radius, args.max_radius, args.distance_tolerance,
+                                            args.normal_angle, args.min_points, args.min_length, args.max_gap,
+                                            args.min_coverage, args.axis_snap_angle, args.hypotheses, args.max_failures,
+                                            args.seed, json.loads(args.tiles), args.tile_overlap, args.tile_workers, log=print)
     print(f'{len(found)} cylinders, {len(residual)} points left, {time.time() - start:.1f} s')
 
     records = []
