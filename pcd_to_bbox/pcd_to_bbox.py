@@ -3,7 +3,7 @@
 # version: 1.0.0
 # email: laputa99999@gmail.com
 # date: 2023.1.4
-import os, json, glob, argparse, fnmatch
+import os, json, argparse, fnmatch
 import numpy as np
 import open3d as o3d
 
@@ -26,8 +26,6 @@ def save_bbox_json(fname, offices, labels, bbox_list):
         bbox = bbox_list[i]
         # vector3ds = bbox.get_box_points()
         aabb_points = np.asarray(bbox.get_box_points()).tolist()
-        min = bbox.get_min_bound().tolist()
-        max = bbox.get_max_bound().tolist()
 
         obj = {
             'office': office,

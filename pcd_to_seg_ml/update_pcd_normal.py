@@ -1,7 +1,7 @@
 # title: update normal vector of pcd files
 # author: kang taewook 
 # date: 2023.6.20
-import os, argparse, glob, logging, pickle, shutil, pdb, subprocess
+import os, argparse
 import numpy as np
 import open3d as o3d
 

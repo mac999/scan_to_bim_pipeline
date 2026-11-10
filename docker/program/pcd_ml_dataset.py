@@ -2,13 +2,12 @@ import numpy as np
 import pandas as pd
 import os, glob, pickle
 from pathlib import Path
-from os.path import join, exists, dirname, abspath, isdir
-from sklearn.neighbors import KDTree
+from os.path import join, exists, abspath, isdir
 from tqdm import tqdm
 import logging
 
 from open3d._ml3d.datasets.base_dataset import BaseDataset, BaseDatasetSplit
-from open3d._ml3d.datasets.utils import DataProcessing, get_min_bbox, BEVBox3D
+from open3d._ml3d.datasets.utils import get_min_bbox, BEVBox3D
 from open3d._ml3d.utils import make_dir, DATASET
 
 log = logging.getLogger(__name__)

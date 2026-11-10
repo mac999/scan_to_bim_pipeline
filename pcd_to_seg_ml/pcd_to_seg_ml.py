@@ -28,13 +28,13 @@
     }
 '''
 
-import os, argparse, glob, logging, pickle, shutil, pdb, subprocess
+import os, argparse, glob, logging, pickle, shutil, subprocess
 import torch
 import numpy as np
 import open3d as o3d
 import open3d.ml as _ml3d
 import open3d.ml.torch as ml3d
-from open3d._ml3d.datasets.base_dataset import BaseDataset, BaseDatasetSplit
+from open3d._ml3d.datasets.base_dataset import BaseDatasetSplit
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -193,7 +193,6 @@ def chmod(path):
         subprocess.Popen("chmod 666 " + file, shell=True)
 
 def main():
-    # pdb.set_trace()    
     parser = argparse.ArgumentParser()
     # parser.add_argument('--input', type=str, default='/pcd_pl/input/conferenceRoom1.pcd', help='input data folder', required=False)
     # parser.add_argument('--input', type=str, default='/pcd_pl/input/unf_1f.pcd', help='input data folder', required=False)
@@ -262,7 +261,6 @@ def main():
                   [0,0,0.5], [0.2,0,0.2], [.5,0,.5], [1,0,1], [0.5,0.5,0.5], [0,0,1], [1,1,1], 
                   [0,0,1], [0.2,0.2,0.2]]   # To distinguesh objects, color schema was changed. # colors = [[0.2,0,0], [0.5,0,0], [1.0,0,0], [0,0.2,0], [0,0.5,0], [0,1.0,0], [0,0,0.2], [0,0,0.5], [0,0,1.0], [0.2,0.2,0], [0.5,0.5,0], [1.0,1.0,0], [0,0.2,0.2], [0,0.5,0.5], [0,1.0,1.0]]
 
-        input_path = os.path.dirname(input_path_fname)
         input_fname_ext = os.path.basename(input_path_fname)
         input_fname = os.path.splitext(input_fname_ext)[0]
 
