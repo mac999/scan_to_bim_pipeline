@@ -3,7 +3,8 @@
 # date: 2026.11.
 # desc: merges the cylinders of pcd_to_cylinder into straight pipes, snaps their radii to nominal
 #       sizes and joins pipe ends that meet at a corner with elbows. writes <output>_pipe.json and
-#       <output>_pipe.ply
+#       <output>_pipe.ply. <output>_log.json lists the parameters, counts and the cylinders and pipes
+#       that were dropped, with the reason
 
 import os, sys, json, glob, argparse
 import open3d as o3d
@@ -52,9 +53,10 @@ def main():
     parser.add_argument('--elbow_axis_tolerance', type=float, default=1.0)  # largest distance between the axes, in radii
     parser.add_argument('--elbow_piece_length', type=float, default=0.3)  # shorter pipes in the corner of an elbow are pieces of its bend
     parser.add_argument('--elbow_reach', type=float, default=0.5)        # largest distance from a pipe end to the corner
+    parser.add_argument('--min_length_ratio', type=float, default=0.0)   # pipes shorter than this x diameter and not joined by an elbow are dropped
     args = parser.parse_args()
 
-    files = glob.glob(args.input + "*_cylinder.json")
+    files = sorted(glob.glob(args.input + "*_cylinder.json"))
     print("input files = ", files)
     if not files:
         print("no cylinder file")
@@ -71,23 +73,41 @@ def main():
     standard = load_standard(args.pipe_standard)
     elbow = standard.get('elbow', {})
     pipes = pn.snap_radius(pipes, standard['sizes'], args.nominal_tolerance)
+    dropped = []
+    def drop(kept, before, reason):
+        kept_ids = {id(p) for p in kept}
+        dropped.extend((p, reason) for p in before if id(p) not in kept_ids)
+        return kept
+    before = pipes
     pipes = pn.drop_elbow_pieces(pipes, elbow.get('angles', [45, 90]), args.elbow_angle_tolerance, args.elbow_axis_tolerance,
                                  args.elbow_reach, args.radius_tolerance, args.elbow_piece_length)
+    pipes = drop(pipes, before, 'elbow_piece')
     elbows = pn.make_elbows(pipes, elbow.get('angles', [45, 90]), elbow.get('bend_ratio', 1.5), elbow.get('min_bend_ratio', 1.0),
                             {s['name']: s['bend_radius'] for s in standard['sizes'] if 'bend_radius' in s},
                             args.elbow_angle_tolerance, args.elbow_axis_tolerance, args.elbow_reach,
                             args.radius_tolerance, args.min_pipe_length)
-    pipes_out = [p for p in pipes if p.length >= args.min_pipe_length]
+    joined = {i for e in elbows for i in e['pipes']}
+    pipes_out = drop([p for p in pipes if p.length >= args.min_pipe_length], pipes, 'short')
+    before = pipes_out
+    pipes_out = drop([p for k, p in enumerate(pipes) if p in pipes_out and
+                      (k in joined or p.length >= args.min_length_ratio * 2 * p.measured_radius)], before, 'length_ratio')
     index = {id(p): k for k, p in enumerate(pipes_out)}
     for e in elbows:
         e['pipes'] = [index.get(id(pipes[i])) for i in e['pipes']]
     print(f'{count} cylinders merged into {len(pipes_out)} pipes, {len(elbows)} elbows, '
-          f'{sum(p.nominal is not None for p in pipes_out)} pipes with a nominal size')
+          f'{sum(p.nominal is not None for p in pipes_out)} pipes with a nominal size, {len(dropped)} dropped')
 
     with open(args.output + '_pipe.json', 'w') as f:
         json.dump({'pipes': [p.to_dict(k) for k, p in enumerate(pipes_out)],
                    'elbows': [dict(id=k, **e) for k, e in enumerate(elbows)]}, f, indent=1)
     save_mesh(args.output + '_pipe.ply', pipes_out, elbows)
+
+    drops = [dict(reason=reason, length_ratio=round(p.length / (2 * p.measured_radius), 2), **p.to_dict(k))
+             for k, (p, reason) in enumerate(dropped)]
+    log = {'stage': 'cylinder_to_pipe', 'input': files, 'parameters': vars(args), 'cylinders': count,
+           'pipes': len(pipes_out), 'elbows': len(elbows), 'dropped': len(dropped), 'dropped_pipes': drops}
+    with open(args.output + '_log.json', 'w') as f:
+        json.dump(log, f, indent=1)
 
 if __name__ == '__main__':
     try:
