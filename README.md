@@ -15,7 +15,8 @@ For reference, you can use the [scan to model program (SMP)](https://github.com/
 <img height="150" src="./doc/perform.PNG"/>
 <img height="150" src="./doc/perform2.PNG"/></br>
 <img height="150" src="./doc/indoor_scan.JPG"/><img height="150" src="./doc/indoor_BIM.PNG"/></br>
-<img height="200" src="./doc/indoor_corner_polygon.png"/><img height="200" src="./doc/indoor_corner_ifc.png"/>
+<img height="200" src="./doc/indoor_corner_polygon.png"/><img height="200" src="./doc/indoor_corner_ifc.png"/></br>
+<img height="200" src="./doc/pipe_scan.png"/><img height="200" src="./doc/pipe_bim.png"/>
 </p>
 
 # setup development environment & packages 
@@ -147,6 +148,8 @@ python ./pipeline/app.py</br>
 </br>
 app.py resolves the paths in config.json from the repository root, so it runs from any directory. The parameters of each stage are listed in [doc/sbdl.md](./doc/sbdl.md). The conference_room1 sample in ./input has a rule-based indoor pipeline that writes an IFC file:</br>
 python ./pipeline/app.py --input_path "./input/conference_room1/*.pcd" --stage indoor_rule</br>
+Pipes and elbows of an MEP scan (LAS, LAZ or PCD) are extracted by the pipe_rule pipeline, which writes IfcPipeSegment and IfcPipeFitting elements. Nominal pipe sizes and elbow rules are in [cylinder_to_pipe/pipe_standard.json](./cylinder_to_pipe/pipe_standard.json), the IFC mapping rules in [geo_to_bim_pipe/pipe_mapping_rule.json](./geo_to_bim_pipe/pipe_mapping_rule.json). For a scan placed as ./input/kict_mep_zero_en_bdlg_parts/kict_mep_zero_en_bdlg_parts.laz:</br>
+python ./pipeline/app.py --input_path "./input/kict_mep_zero_en_bdlg_parts/*.laz" --stage pipe_rule</br>
 
 # test
 python -m pytest tests</br>
@@ -176,6 +179,7 @@ SBDL concept diagram and [UML](./doc/SAD.uml) architecture.</br>
 | | 2024.2 | pcd_to_dtm and dtm_to_geo fixes. Options active, log_view, height_building_offset, height_ground_offset, max_building_height. |
 | v0.6 | 2026.7 | Python 3.11, Shapely 2 and NumPy 1.24 support. CMake uses find_package(PCL). Fixes in elevation sampling, the height axis of object classification and point density. |
 | v0.6.1 | 2026.11 | A failed stage stops its pipeline. ifcopenshell 0.8 support. Outdoor IFC keeps map coordinates (IfcMapConversion) and ground elevation. Indoor IFC output (IfcWall, IfcSlab, IfcCovering), with planes joined at shared edges and corners (corner_buffer). Options moved to config.json and stage parameters, see [doc/sbdl.md](./doc/sbdl.md). environment.yml and tests. |
+| v0.7 | 2026.11 | Pipe stages after Kang et al. 2020 (Appl. Sci. 10, 7422): RANSAC cylinder extraction (pcd_to_cylinder), straight pipes and elbows with nominal sizes (cylinder_to_pipe), IfcPipeSegment and IfcPipeFitting by mapping rules (geo_to_bim_pipe). Pipe standard and mapping rules are JSON files. pcd_to_clean reads LAS and LAZ. |
 
 <p align="center"><img height="200" src="./doc/indoor_ml.JPG"/><img height="200" src="./doc/indoor_perform1.JPG"/></p>
 
