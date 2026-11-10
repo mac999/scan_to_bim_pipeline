@@ -34,6 +34,36 @@ def test_axis_snap_and_gap_split():
     for cyl in found:
         assert abs(cyl.axis[2]) == pytest.approx(1.0)
 
+def tiled_scene():
+    # a long pipe across the tile border at x = 2 and a short one whose halves are each below min_points
+    return np.vstack([cylinder_points([0, 1, 0], [4, 1, 0], R), cylinder_points([1.9, 0, 0], [2.1, 0, 0], R, seed=1)])
+
+@requires_open3d
+def test_tiles_off_is_plain_detection():
+    import cylinder
+    points = tiled_scene()
+    normals = normals_of(points)
+    a, ra = cylinder.detect(points, normals, 0.01, 0.3, min_points=400)
+    b, rb = cylinder.detect_tiled(points, normals, 0.01, 0.3, min_points=400, tiles=[1, 1])
+    assert [c.to_dict() for c in a] == [c.to_dict() for c in b]
+    assert np.array_equal(ra, rb)
+
+@requires_open3d
+def test_tiles_join_pieces_across_the_border():
+    import cylinder
+    points = tiled_scene()
+    normals = normals_of(points)
+    found, residual = cylinder.detect_tiled(points, normals, 0.01, 0.3, min_points=400, tiles=[2, 1], overlap=0.3)
+    assert sorted(round(c.length, 1) for c in found) == [0.2, 4.0]
+    for c in found:
+        assert c.radius == pytest.approx(R, abs=0.002)
+    inliers = np.concatenate([c.inliers for c in found])
+    assert len(np.unique(inliers)) == len(inliers)
+    assert len(inliers) + len(residual) == len(points)
+    # without a margin each half of the short pipe is too small and is lost
+    found, _ = cylinder.detect_tiled(points, normals, 0.01, 0.3, min_points=400, tiles=[2, 1], overlap=0.01)
+    assert sorted(round(c.length, 1) for c in found) == [4.0]
+
 def l_shape():
     import pipe_network as pn
     # an x pipe and a z pipe that stop short of the corner at (1, 0, 0), the x pipe in two pieces
