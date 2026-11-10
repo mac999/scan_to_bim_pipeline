@@ -61,10 +61,12 @@ class pipeline_stage:
         if cmd == None:            
             program_path = conf.bin_path + self.name + "/" + self.name
             if os.path.isfile(program_path + ".py"):
-                cmds.append('python')
+                cmds.append(sys.executable or 'python')     # same interpreter as the app, so a conda env is kept
                 program_path = program_path + ".py"
             else: 
                 program_path = conf.bin_path + "bin/" + self.name
+                if os.path.isfile(program_path + ".exe"):
+                    program_path += ".exe"
                 if os.path.isfile(program_path) == False:
                     print(f'{self.name}: program not found')
                     self.return_code = 1
