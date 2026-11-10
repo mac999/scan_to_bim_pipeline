@@ -3,7 +3,7 @@
 # version: 1.0.0
 # email: laputa99999@gmail.com
 # date: 2022.6
-import sys, os
+import os
 import json
 
 # relative paths in config.json are resolved against the repository root, not the current directory
@@ -35,9 +35,6 @@ class config:
 
     def set_pipeline_fname(self, fname):
         config.pipeline_fname = fname
-
-    def get_pipeline_fname(self):
-        return config.pipeline_fname
 
     def set_input_path(self, path):
         config.input_path = path

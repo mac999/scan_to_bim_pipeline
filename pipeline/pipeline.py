@@ -8,7 +8,7 @@
 #   2023.1.30, taewook kang, update 
 #   2024.2, update
 
-import os, sys, re, json, glob, subprocess, shutil
+import os, sys, re, json, subprocess, shutil
 import config
 
 conf = config.config()
@@ -112,12 +112,6 @@ class pipeline_stage:
     def set_output_path(self, path):
         self.stage_config['output'] = path
 
-    def set_active_run(self, flag):
-        self.active_run = flag
-
-    def get_active_run(self):
-        return self.active_run
-
     def run(self):
         output_fname_tag = ""
         try:
@@ -196,12 +190,6 @@ class pipeline:
             obj = self.create_dynamic_pipeline_stage(stage_name, type_name)
         return obj
 
-    def set_active_run(self, flag):
-        self.active_run = flag
-
-    def get_active_run(self):
-        return self.active_run
-
     def load(self, fname):        
         print('load pipeline')
         with open(fname, 'r') as f:
@@ -253,11 +241,6 @@ class pipeline:
 
         if self.active_run == False:
             return
-
-        # self.pipes[0].set_active_run(False)   # TBD. json. for test.
-        # self.pipes[1].set_active_run(False)
-        # self.pipes[2].set_active_run(False)
-        # self.pipes[3].set_active_run(False)
 
         input = conf.get_input_path()
         for idx, p in enumerate(self.pipes):

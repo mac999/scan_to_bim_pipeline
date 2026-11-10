@@ -7,11 +7,7 @@
 #   2023.1.2, taewook kang, major update about new stage class dynamically. 
 #   2023.1.30, taewook kang, update 
 
-import sys, re, json, glob, subprocess
-import config
-from pipeline import pipeline_stage 
-
-conf = config.config()
+from pipeline import pipeline_stage     # base class of the stages defined here
 
 # a class named <type>_stage defined here replaces the default stage for that SBDL type.
 # see pipeline.create_stage(). every type currently runs with the default pipeline_stage.

@@ -6,7 +6,7 @@
 # 2022.6. initial
 # 2024.2. update
 # 
-import sys, os, re, argparse, traceback, json, glob, shutil
+import os, re, argparse, traceback, json, glob, shutil
 import pipeline, config
 
 # define app
@@ -18,18 +18,6 @@ class application:
         self.config = config.config()
         self.pipes = list()
 
-    def clear_files(self, folder_path):
-        try:
-            shutil.rmtree(folder_path)
-            ''' 
-            path = folder_path + '*' 
-            files = glob.glob(path)
-            for f in files:
-                os.remove(f)
-            '''
-        except Exception as e:
-            pass
-
     def load(self, args, json_pipeline, pipeline_stage, input_file, output_file):
         if args == None:
             return 
@@ -39,7 +27,6 @@ class application:
         if input_file != None:
             self.config.set_input_path(input_file)
         if output_file != None:
-            # self.clear_files(output_file)
             self.config.set_output_path(output_file)
             fname = os.path.basename(json_pipeline)
             try:
