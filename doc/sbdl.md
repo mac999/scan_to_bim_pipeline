@@ -146,6 +146,8 @@ With `corner_buffer` above 0, each segment is fitted to a plane and outlined in 
 
 ### pcd_to_cylinder
 
+The pipe stages, with results on a sample scan, are also described in [pipe.md](./pipe.md).
+
 Extracts cylinders, such as pipes, with RANSAC. A seed point and a neighbour with their normals give a cylinder hypothesis; the hypotheses are scored around the seed, the best one is refined by least squares on all points (axis from the normals, circle fit across the axis) and cut where its points stop along the axis. A cylinder is kept when its points cover an unbroken arc of at least `min_coverage`, so a pipe scanned from one side is still found while a false cylinder touching several pipes is not. Its points are then removed and the search goes on until `max_failures` seeds in a row give nothing.
 
 Reads every point cloud that matches the input prefix, LAS and LAZ included. Writes `<output>_@<n>.pcd` with the points of each cylinder, `<output>_residual.pcd` with the rest and `<output>_cylinder.json` with start, end, axis, radius, length, number of points and coverage of each cylinder.
