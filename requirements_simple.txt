@@ -10,7 +10,7 @@ pandas
 matplotlib
 Pillow
 open3d
-laspy
+laspy[lazrs]
 trimesh
 pyvista
 alphashape

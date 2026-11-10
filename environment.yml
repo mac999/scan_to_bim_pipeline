@@ -29,6 +29,7 @@ dependencies:
   - matplotlib
   - pillow
   - laspy
+  - lazrs-python     # laz support for laspy
   - trimesh
   - pyvista<0.45     # 0.45 and later need vtk 9.3.1, newer than the one pcl pins
   - alphashape

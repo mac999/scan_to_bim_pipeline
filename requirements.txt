@@ -14,7 +14,7 @@ Pillow>=10.0
 
 # point cloud processing
 open3d>=0.17
-laspy>=2.4
+laspy[lazrs]>=2.4
 trimesh>=3.20
 pyvista>=0.42
 alphashape>=1.3.1

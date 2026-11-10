@@ -32,7 +32,7 @@ def display_inlier_outlier(cloud, ind):
     o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud])
 
 def remove_outlier(fname, args):
-    pcd = o3d.io.read_point_cloud(fname)
+    pcd = scan_to_bim_lib.read_point_cloud(fname)
     # o3d.visualization.draw_geometries([pcd])
 
     cl = pcd
@@ -72,7 +72,8 @@ def main():
         print("input files = ", files)
 
         for index, infile in enumerate(files): 
-            outfilename = scan_to_bim_lib.get_pcd_index_filepath(args.output, infile)
+            ext = ".pcd" if os.path.splitext(infile)[1].lower() in (".las", ".laz") else ""   # open3d cannot write las
+            outfilename = scan_to_bim_lib.get_pcd_index_filepath(args.output, infile, ext)
 
             print("cleaning ", infile)
             pcd = remove_outlier(infile, args)

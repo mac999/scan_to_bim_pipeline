@@ -322,3 +322,16 @@ def conv_geotiff_png_for_WGS84_googlemap(inputfile, outputfile):
   color.close()
 
   os.system("gdaldem color-relief " + inputfilename + " color " + basefilename + ".png -of png")
+
+def read_point_cloud(fname):
+  # open3d does not read las/laz, so those go through laspy
+  import open3d as o3d
+  if os.path.splitext(fname)[1].lower() not in ('.las', '.laz'):
+    return o3d.io.read_point_cloud(fname)
+  import laspy
+  las = laspy.read(fname)
+  pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(np.c_[las.x, las.y, las.z]))
+  if 'red' in las.point_format.dimension_names:
+    rgb = np.c_[las.red, las.green, las.blue].astype(float)
+    pcd.colors = o3d.utility.Vector3dVector(rgb / (65535.0 if rgb.max() > 255 else 255.0))
+  return pcd
