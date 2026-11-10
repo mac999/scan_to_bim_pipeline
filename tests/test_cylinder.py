@@ -64,6 +64,61 @@ def test_tiles_join_pieces_across_the_border():
     found, _ = cylinder.detect_tiled(points, normals, 0.01, 0.3, min_points=400, tiles=[2, 1], overlap=0.01)
     assert sorted(round(c.length, 1) for c in found) == [4.0]
 
+def test_pipe_directions():
+    import cylinder
+    assert len(cylinder.pipe_directions([90])) == 3
+    d = cylinder.pipe_directions([45, 90])
+    assert len(d) == 9
+    assert np.max(np.abs(d @ np.array([1, 0, 1]) / np.sqrt(2))) == pytest.approx(1.0)
+    d = cylinder.pipe_directions([90], 30)
+    assert np.max(np.abs(d @ np.array([np.cos(np.radians(30)), np.sin(np.radians(30)), 0]))) == pytest.approx(1.0)
+
+def tilted_scene():
+    # a pipe along x and one at 20 degrees from the horizontal, which no fitting makes
+    tilt = np.array([np.cos(np.radians(20)), 0, np.sin(np.radians(20))])
+    return np.vstack([cylinder_points([0, 0, 0], [1.5, 0, 0], R),
+                      cylinder_points([0, 1, 0], np.array([0, 1, 0]) + tilt, R, seed=1)])
+
+@requires_open3d
+def test_pipes_off_the_fitting_angles_are_rejected():
+    import cylinder
+    points = tilted_scene()
+    normals = normals_of(points)
+    found, _ = cylinder.detect(points, normals, 0.01, 0.3)
+    assert len(found) == 2
+    rejected = []
+    found, _ = cylinder.detect(points, normals, 0.01, 0.3, axis_snap_angle=5,
+                               directions=cylinder.pipe_directions([45, 90]), rejected=rejected)
+    assert len(found) == 1 and angle(found[0].axis, [1, 0, 0]) < 0.01
+    assert rejected and {c.reason for c in rejected} == {'direction'}
+    assert angle(rejected[0].axis, [np.cos(np.radians(20)), 0, np.sin(np.radians(20))]) < 2
+
+@requires_open3d
+def test_stage_logs_list_rejected_cylinders_and_dropped_pipes(tmp_path):
+    # a short, thick cylinder such as a pump body is no pipe
+    points = np.vstack([tilted_scene(), cylinder_points([2, 2, 0], [2, 2, 0.2], 0.15, seed=2)])
+    for name in ('pcd_to_cylinder', 'cylinder_to_pipe'):
+        os.makedirs(tmp_path / name)
+    write_pcd(tmp_path / 'input.pcd', points)
+    ret = run_module('pcd_to_cylinder/pcd_to_cylinder.py', '--input', tmp_path / 'input.pcd',
+                     '--output', tmp_path / 'pcd_to_cylinder' / 'pcd_to_cylinder', '--pipe_angles', '[90]')
+    assert ret.returncode == 0, ret.stdout + ret.stderr
+    with open(tmp_path / 'pcd_to_cylinder' / 'pcd_to_cylinder_log.json') as f:
+        log = json.load(f)
+    assert log['cylinders'] == 2 and log['rejected'] >= 1
+    reject = log['rejected_cylinders'][0]
+    assert reject['reason'] == 'direction' and reject['elevation'] == pytest.approx(20, abs=2)
+    assert os.path.isfile(tmp_path / 'pcd_to_cylinder' / reject['file'])
+
+    ret = run_module('cylinder_to_pipe/cylinder_to_pipe.py', '--input', tmp_path / 'pcd_to_cylinder' / 'pcd_to_cylinder',
+                     '--output', tmp_path / 'cylinder_to_pipe' / 'cylinder_to_pipe', '--min_length_ratio', 1.5, cwd=tmp_path)
+    assert ret.returncode == 0, ret.stdout + ret.stderr
+    with open(tmp_path / 'cylinder_to_pipe' / 'cylinder_to_pipe_log.json') as f:
+        log = json.load(f)
+    assert log['pipes'] == 1
+    assert [(d['reason'], d['radius'] > 0.1) for d in log['dropped_pipes']] == [('length_ratio', True)]
+    assert log['dropped_pipes'][0]['length_ratio'] < 1.5
+
 def l_shape():
     import pipe_network as pn
     # an x pipe and a z pipe that stop short of the corner at (1, 0, 0), the x pipe in two pieces
