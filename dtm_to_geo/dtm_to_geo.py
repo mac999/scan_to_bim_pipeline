@@ -7,17 +7,14 @@
 # 2023.12. refactoring.
 # 2024.2. update
 # 
-import sys, os, glob, csv, json, subprocess, argparse, cv2
+import sys, os, glob, csv, json, argparse, cv2
 import numpy as np
 import geopandas as gpd
 import osgeo.ogr as ogr
-import open3d as o3d
 import pyvista as pv
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
-from shapely import affinity
 from osgeo import gdal, osr
-from PIL import Image
 import matplotlib.pyplot as plt
 
 lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib"
@@ -54,8 +51,6 @@ def save_elevation_data(infile, outfile):
 	print(elevation.shape)
 	print(elevation)
 
-	x0, dx, dxdy, y0, dydx, dy = ds.GetGeoTransform()
-
 	np.save(outfile, elevation)
 
 def save_transform_project_data(infile, outfile):
@@ -90,17 +85,13 @@ def save_transform_project_data(infile, outfile):
 
 	return transform_json_file, projection_file, tm, proj, proj_data
 
-def save_shp(out_fname, polygons, transform_json_file, projection_file, tm, proj, proj_data):
+def save_shp(out_fname, polygons, transform_json_file, proj):
 	try:
 		tm = []
-		proj_data = ""
 		with open(transform_json_file, 'r') as f:
 			data = json.load(f)
 			for v in data:
 				tm.append(data[v])
-		with open(projection_file, 'r') as f:
-			text = f.read()
-			proj_data = text
 
 		# https://gis.stackexchange.com/questions/392515/create-a-shapefile-from-geometry-with-ogr
 		# https://gis.stackexchange.com/questions/264618/reprojecting-and-saving-shapefile-in-gdal
@@ -124,11 +115,7 @@ def save_shp(out_fname, polygons, transform_json_file, projection_file, tm, proj
 			for p in points_2d: 
 				p[0] = p[0] * tm[1] + tm[0]    # points_3d[0] = points_3d[0] + tm[0] # + Xpixel * (1.0 / tm[1]) + Yline * tm[2]
 				p[1] = p[1] * tm[5] + tm[3]    # points_3d[1] = points_3d[1] + tm[3] # + Xpixel * (1.0 / tm[1]) + Yline * tm[5]
-			N = len(points_2d)
-
 			points_3d = np.pad(points_2d, [(0, 0), (0, 1)])  # shape (N, 3)
-			face = [N + 1] + list(range(N)) + [0]  # cell connectivity for a single cell
-			polygon = pv.PolyData(points_3d, faces=face)
 
 			line_string = ogr.Geometry(ogr.wkbLinearRing)   # https://pcjericks.github.io/py-gdalogr-cookbook/geometry.html
 
@@ -209,8 +196,7 @@ def get_elevation_from_area(elev_map, poly):
 
 	return 0.0
 
-def get_elevation_from_map(tif_file, elev_map, polygon):
-	global args
+def get_elevation_from_map(elev_map, polygon):
 	poly1 = polygon.buffer(-args.height_building_offset, resolution=16, join_style=2, mitre_limit=1)	# default=-5.  ex) 3
 	height1 = get_elevation_from_area(elev_map, poly1)
 
@@ -223,9 +209,7 @@ def get_elevation_from_map(tif_file, elev_map, polygon):
 
 	return np.abs(height1 - height2)
 
-def save_mesh(tif_file, out_fname, polygons, depth_img, transform_json_file, projection_file, tm, elevation_file):
-	global args
-
+def save_mesh(out_fname, polygons, tm, elevation_file):
 	try:
 		if len(polygons) == 0:
 			return
@@ -244,7 +228,7 @@ def save_mesh(tif_file, out_fname, polygons, depth_img, transform_json_file, pro
 			polygon = polygons[i]
 
 			x, y = polygon.exterior.coords.xy
-			height = get_elevation_from_map(tif_file, elev_map, polygon)
+			height = get_elevation_from_map(elev_map, polygon)
 			if height < 0.0:
 				continue
 
@@ -291,7 +275,6 @@ def save_mesh(tif_file, out_fname, polygons, depth_img, transform_json_file, pro
 
 		if args.log_view:
 			# elevation view
-			rows = elev_map.shape[0]
 			z = np.where(elev_map >= 0.0, elev_map, 0.0)
 			for i in range(len(polygons)):
 				try:
@@ -333,23 +316,11 @@ def save_mesh(tif_file, out_fname, polygons, depth_img, transform_json_file, pro
 	except Exception as e:
 		print(e)
 
-def rotate_image(img, angle):
-	if img is None:
-		return None
-
-	(h, w) = img.shape[:2]
-	(cX, cY) = (w // 2, h // 2)
-	M = cv2.getRotationMatrix2D((cX, cY), angle, 1.0)
-	rot_img = cv2.warpAffine(img, M, (w, h))
-	cv2.imshow("Rotated by -90 Degrees", rot_img)
-
-	return rot_img
-
-def save_geojson(outfile, shp_fname, csv_fname):
+def save_geojson(outfile, shp_fname):
 	shp_file = gpd.read_file(shp_fname)
 	shp_file.to_file(outfile, driver='GeoJSON')
 
-def save_dataset(tif_file, outfile, polygons, tm, elevation_file): 
+def save_dataset(outfile, polygons, tm, elevation_file): 
 	datafile = open(outfile, 'w', newline='')
 	if datafile == None:
 		return
@@ -363,7 +334,7 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 		polygon = polygons[i]
 
 		x, y = polygon.exterior.coords.xy
-		height = get_elevation_from_map(tif_file, elev_map, polygon)
+		height = get_elevation_from_map(elev_map, polygon)
 		if height < 0.0:
 			continue
 		ground = get_elevation_from_area(elev_map, polygon.buffer(args.height_ground_offset, resolution=16, join_style=2, mitre_limit=1))
@@ -375,8 +346,6 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 			p[0] = p[0] * tm[1] + tm[0]    # points_3d[0] = points_3d[0] + tm[0] # + Xpixel * (1.0 / tm[1]) + Yline * tm[2]
 			p[1] = p[1] * tm[5] + tm[3]    # points_3d[1] = points_3d[1] + tm[3] # + Xpixel * (1.0 / tm[1]) + Yline * tm[5]
 			footprint.append((p[0], p[1]))
-		N = len(points_2d)
-
 		poly_footprint = Polygon(footprint)
 		area = poly_footprint.area
 		length = poly_footprint.length
@@ -388,8 +357,6 @@ def save_dataset(tif_file, outfile, polygons, tm, elevation_file):
 	datafile.close()
 
 def create_geometry_from_dtm(infile, outfile):
-	global args
-
 	# load
 	transform_json_file, projection_file, tm, proj, proj_data = save_transform_project_data(infile, outfile)    # clone_tiff('/home/ktw/Projects/pcd_pl/dtm_to_geo/dtm_im.tif', '/home/ktw/Projects/pcd_pl/dtm_to_geo/dtm_im_clone.tif')
 	save_elevation_data(infile, outfile + "_elevation")
@@ -406,7 +373,6 @@ def create_geometry_from_dtm(infile, outfile):
 	ret, binary = cv2.threshold(gray, args.extract_pixel_min_value, args.extract_pixel_max_value, 0) 
 
 	contours, h = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # https://opencv-python.readthedocs.io/en/latest/doc/15.imageContours/imageContours.html
-	image = cv2.drawContours(img, contours, -1, (0,255,0), 1)
 
 	# simplification
 	scale_ratio = abs(tm[1] * tm[5])
@@ -427,10 +393,10 @@ def create_geometry_from_dtm(infile, outfile):
 	simplified_polygons = polygons.simplify(args.simplify_factor)    # shapely, https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoSeries.simplify.html
 
 	# save
-	save_shp(outfile + ".shp", simplified_polygons, transform_json_file, projection_file, tm, proj, proj_data)     # save_shp_with_elevation("/home/ktw/Projects/pcd_pl/output/volcano_data.txt", "/home/ktw/Projects/pcd_pl/output/volcano_elev.shp")
-	save_mesh(infile, outfile + ".ply", simplified_polygons, img, transform_json_file, projection_file, tm, outfile + "_elevation")
-	save_dataset(infile, outfile + '_' + args.output_dataset, simplified_polygons, tm, outfile + "_elevation")
-	save_geojson(outfile + ".geojson", outfile + '.shp', outfile + '_' + args.output_dataset)
+	save_shp(outfile + ".shp", simplified_polygons, transform_json_file, proj)     # save_shp_with_elevation("/home/ktw/Projects/pcd_pl/output/volcano_data.txt", "/home/ktw/Projects/pcd_pl/output/volcano_elev.shp")
+	save_mesh(outfile + ".ply", simplified_polygons, tm, outfile + "_elevation")
+	save_dataset(outfile + '_' + args.output_dataset, simplified_polygons, tm, outfile + "_elevation")
+	save_geojson(outfile + ".geojson", outfile + '.shp')
 
 def str2bool(value):    # argparse's type=bool treats any non-empty string like 'false' as True
 	return str(value).strip().lower() in ('true', '1', 'yes', 'on')
@@ -448,7 +414,7 @@ def main():
 	parser.add_argument('--height_ground_offset', '--height_ground_offest', dest='height_ground_offset', type=float, default=10.0, required=False)	# old misspelled name kept for existing SBDL files
 	parser.add_argument('--max_building_height', type=float, default=100.0, required=False)
 	parser.add_argument('--output_dataset', type=str, default="dataset.csv", required=False)  # TBD    
-	parser.add_argument('--output_pset', type=str, default="json", required=False)  # TBD
+	parser.add_argument('--output_pset', type=str, default="json", required=False)  # not read. kept so older SBDL files still parse
 
 	global args
 	args = parser.parse_args() 
