@@ -62,11 +62,28 @@ def axis_from_normals(normals):
     # normals of a cylinder are perpendicular to its axis
     return np.linalg.eigh(normals.T @ normals)[1][:, 0]
 
-def snap_axis(axis, angle):
-    for a in AXES:
+def snap_axis(axis, angle, directions=None):
+    for a in AXES if directions is None else directions:
         if abs(axis @ a) > np.cos(np.radians(angle)):
             return a * np.sign(axis @ a)
     return axis
+
+def pipe_directions(angles, azimuth=0.0):    # azimuth of the grid in degrees
+    # axis directions a pipe run can take: elevations and azimuths (from the grid azimuth) that are
+    # multiples of the fitting angles, e.g. [45, 90] gives 0, 45 and 90 degrees in both
+    steps = [a for a in angles if 0 < a <= 90]
+    elevations = sorted({0.0, 90.0} | {float(k * a) for a in steps for k in range(1, int(90 // a) + 1)})
+    azimuths = sorted({0.0} | {float(k * a) % 180 for a in steps for k in range(1, int(180 // a) + 1)})
+    found = []
+    for e in np.radians(elevations):
+        for z in np.radians(np.array(azimuths) + azimuth) if e < np.pi / 2 - 1e-9 else [0.0]:
+            d = np.array([np.cos(e) * np.cos(z), np.cos(e) * np.sin(z), np.sin(e)])
+            if all(abs(d @ f) < 1 - 1e-9 for f in found):
+                found.append(d)
+    return np.array(found)
+
+def off_directions(axis, directions, angle):
+    return directions is not None and np.max(np.abs(directions @ axis)) < np.cos(np.radians(angle))
 
 def basis(axis):
     ref = AXES[np.argmin(np.abs(axis))]
@@ -83,12 +100,12 @@ def fit_circle(xy):
     res = least_squares(lambda q: np.linalg.norm(xy - q[:2], axis=1) - q[2], [cx, cy, r], loss='soft_l1', f_scale=0.005)
     return res.x[:2], abs(res.x[2])
 
-def refine(points, normals, cyl, axis_snap_angle=0.0, fixed_axis=False):
+def refine(points, normals, cyl, axis_snap_angle=0.0, fixed_axis=False, directions=None):
     axis = cyl.axis if fixed_axis else axis_from_normals(normals)
     if axis @ cyl.axis < 0:
         axis = -axis
     if axis_snap_angle > 0:
-        axis = snap_axis(axis, axis_snap_angle)
+        axis = snap_axis(axis, axis_snap_angle, directions)
     u, v = basis(axis)
     origin = points.mean(axis=0)
     d = points - origin
@@ -133,13 +150,16 @@ def split(cyl, index, points, max_gap, seed_point):
 
 def detect(points, normals, min_radius, max_radius, tolerance=0.005, normal_angle=20.0, min_points=200,
            min_length=0.1, max_gap=0.05, min_coverage=0.25, axis_snap_angle=0.0, hypotheses=50,
-           max_failures=200, seed=0, log=None):
+           max_failures=200, seed=0, log=None, directions=None, rejected=None):
+    # directions: allowed axis directions (pipe_directions). a cylinder on another axis is not a pipe; it is
+    # added to the rejected list when one is given
     rng = np.random.default_rng(seed)
     points = np.asarray(points, float)
     normals = np.asarray(normals, float)
     tree = cKDTree(points)
     alive = np.ones(len(points), bool)
     tried = np.zeros(len(points), bool)
+    listed = np.zeros(len(points), bool)
     cos_normal = np.cos(np.radians(normal_angle))
     found = []
     failures = 0
@@ -176,7 +196,7 @@ def detect(points, normals, min_radius, max_radius, tolerance=0.005, normal_angl
             index = split(cyl, index, points, max_gap, points[s])
             if len(index) < min_points:
                 break
-            cyl = refine(points[index], normals[index], cyl, axis_snap_angle)
+            cyl = refine(points[index], normals[index], cyl, axis_snap_angle, directions=directions)
             if not min_radius <= cyl.radius <= max_radius:
                 break
         index = np.flatnonzero(alive)
@@ -195,6 +215,16 @@ def detect(points, normals, min_radius, max_radius, tolerance=0.005, normal_angl
         cyl.start = cyl.point + cyl.axis * t.min()
         cyl.end = cyl.point + cyl.axis * t.max()
         cyl.inliers = index
+        if off_directions(cyl.axis, directions, max(axis_snap_angle, 1.0)):
+            # its points stay for other cylinders but are not used as seeds again
+            tried[index] = True
+            # other seeds on the same surface find it again; it is listed once
+            if rejected is not None and listed[index].mean() < 0.5:
+                cyl.reason = 'direction'
+                rejected.append(cyl)
+                listed[index] = True
+            failures += 1
+            continue
         alive[index] = False
         found.append(cyl)
         failures = 0
@@ -221,10 +251,11 @@ def tile_boxes(points, tiles, overlap):
 
 def _detect_tile(job):
     index, points, normals, params = job
-    found, _ = detect(points, normals, **params)
-    for c in found:
+    rejected = []
+    found, _ = detect(points, normals, rejected=rejected, **params)
+    for c in found + rejected:
         c.inliers = index[c.inliers]
-    return found
+    return found, rejected
 
 def same_cylinder(a, b, angle, offset, radius_tolerance, gap):
     if abs(a.axis @ b.axis) < np.cos(np.radians(angle)) or abs(a.radius - b.radius) > radius_tolerance:
@@ -243,7 +274,7 @@ def longest_run(cyl, index, points, max_gap):
     return index[order[cuts[k]:cuts[k + 1]]]
 
 def stitch(pieces, points, normals, min_radius, max_radius, tolerance, normal_angle, min_points, min_length,
-           max_gap, min_coverage, axis_snap_angle, merge_angle=5.0):
+           max_gap, min_coverage, axis_snap_angle, merge_angle=5.0, directions=None, rejected=None):
     group = list(range(len(pieces)))
     def root(i):
         while group[i] != i:
@@ -264,7 +295,7 @@ def stitch(pieces, points, normals, min_radius, max_radius, tolerance, normal_an
         cyl = max(members, key=lambda c: len(c.inliers))
         index = np.unique(np.concatenate([c.inliers for c in members]))
         if len(members) > 1:
-            cyl = refine(points[index], normals[index], cyl, axis_snap_angle)
+            cyl = refine(points[index], normals[index], cyl, axis_snap_angle, directions=directions)
             index = index[inlier_mask(cyl, points[index], normals[index], 2 * tolerance, cos_normal)]
             if len(index):
                 index = longest_run(cyl, index, points, max_gap)
@@ -285,20 +316,27 @@ def stitch(pieces, points, normals, min_radius, max_radius, tolerance, normal_an
             continue
         cyl.start, cyl.end = cyl.point + cyl.axis * t.min(), cyl.point + cyl.axis * t.max()
         cyl.inliers = index
+        if off_directions(cyl.axis, directions, max(axis_snap_angle, 1.0)):
+            if rejected is not None:
+                cyl.reason = 'direction'
+                rejected.append(cyl)
+            continue
         taken[index] = True
         found.append(cyl)
     return found
 
 def detect_tiled(points, normals, min_radius, max_radius, tolerance=0.005, normal_angle=20.0, min_points=200,
                  min_length=0.1, max_gap=0.05, min_coverage=0.25, axis_snap_angle=0.0, hypotheses=50,
-                 max_failures=200, seed=0, tiles=(1, 1), overlap=0.0, workers=1, log=None):
+                 max_failures=200, seed=0, tiles=(1, 1), overlap=0.0, workers=1, log=None, directions=None,
+                 rejected=None):
     params = dict(min_radius=min_radius, max_radius=max_radius, tolerance=tolerance, normal_angle=normal_angle,
                   min_points=min_points, min_length=min_length, max_gap=max_gap, min_coverage=min_coverage,
-                  axis_snap_angle=axis_snap_angle, hypotheses=hypotheses, max_failures=max_failures)
+                  axis_snap_angle=axis_snap_angle, hypotheses=hypotheses, max_failures=max_failures,
+                  directions=directions)
     points = np.asarray(points, float)
     normals = np.asarray(normals, float)
     if int(np.prod(tiles)) <= 1:
-        return detect(points, normals, seed=seed, log=log, **params)
+        return detect(points, normals, seed=seed, log=log, rejected=rejected, **params)
     if overlap <= 0:
         overlap = max(min_length, 2 * max_radius) + max_gap
     jobs = []
@@ -312,11 +350,13 @@ def detect_tiled(points, normals, min_radius, max_radius, tolerance=0.005, norma
             results = list(pool.map(_detect_tile, jobs))
     else:
         results = [_detect_tile(job) for job in jobs]
-    pieces = [c for found in results for c in found]
+    pieces = [c for found, _ in results for c in found]
+    if rejected is not None:
+        rejected += [c for _, r in results for c in r]
     if log:
         log(f'{len(jobs)} tiles, overlap {overlap:.2f}, {len(pieces)} pieces')
     found = stitch(pieces, points, normals, min_radius, max_radius, tolerance, normal_angle, min_points,
-                   min_length, max_gap, min_coverage, axis_snap_angle)
+                   min_length, max_gap, min_coverage, axis_snap_angle, directions=directions, rejected=rejected)
     alive = np.ones(len(points), bool)
     for c in found:
         alive[c.inliers] = False
