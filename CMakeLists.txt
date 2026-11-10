@@ -13,6 +13,11 @@ if(NOT MSVC)
 endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
+# multi-config generators (Visual Studio) would add a Release or Debug folder
+foreach(config_type ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${config_type} config_type)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_type} ${CMAKE_BINARY_DIR}/../bin)
+endforeach()
 
 message("BIN PATH = " ${CMAKE_BINARY_DIR})
 
