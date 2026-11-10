@@ -1,0 +1,41 @@
+{
+    "pipeline.pipe_rule": [
+        {
+            "type": "pcd_to_clean",
+            "voxel_down_size": 0.01,
+            "stat_neighbors": 20,
+            "stat_std_ratio": 2.0,
+            "nb_radius_points": 10,
+            "nb_radius": 0.03
+        },
+        {
+            "type": "pcd_to_cylinder",
+            "normal_radius": 0.03,
+            "min_radius": 0.01,
+            "max_radius": 0.3,
+            "distance_tolerance": 0.005,
+            "normal_angle": 20.0,
+            "min_points": 150,
+            "min_length": 0.15,
+            "max_gap": 0.05,
+            "min_coverage": 0.25,
+            "axis_snap_angle": 5.0,
+            "seed": 0
+        },
+        {
+            "type": "cylinder_to_pipe",
+            "merge_angle": 5.0,
+            "merge_distance": 0.02,
+            "merge_gap": 0.3,
+            "radius_tolerance": 0.01,
+            "pipe_standard": "cylinder_to_pipe/pipe_standard.json",
+            "nominal_tolerance": 0.005,
+            "elbow_angle_tolerance": 10.0,
+            "elbow_reach": 0.5
+        },
+        {
+            "type": "geo_to_bim_pipe",
+            "mapping_rule": "geo_to_bim_pipe/pipe_mapping_rule.json"
+        }
+    ]
+}

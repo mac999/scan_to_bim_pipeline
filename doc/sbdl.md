@@ -103,7 +103,7 @@ Repeated RANSAC plane extraction. Writes `<output>_@<n>.pcd` per plane.
 
 ### pcd_to_clean
 
-Outlier removal with Open3D. Each filter is skipped when its size parameter is 0.
+Outlier removal with Open3D. Each filter is skipped when its size parameter is 0. LAS and LAZ input is read with laspy and written as PCD.
 
 | parameter | default | |
 |---|---|---|
@@ -143,6 +143,86 @@ With `corner_buffer` above 0, each segment is fitted to a plane and outlined in 
 | `output_ifc` | true | |
 | `project_name`, `site_name`, `building_name`, `storey_name` | | IFC names |
 | `log_view` | false | show plots |
+
+### pcd_to_cylinder
+
+Extracts cylinders, such as pipes, with RANSAC. A seed point and a neighbour with their normals give a cylinder hypothesis; the hypotheses are scored around the seed, the best one is refined by least squares on all points (axis from the normals, circle fit across the axis) and cut where its points stop along the axis. A cylinder is kept when its points cover an unbroken arc of at least `min_coverage`, so a pipe scanned from one side is still found while a false cylinder touching several pipes is not. Its points are then removed and the search goes on until `max_failures` seeds in a row give nothing.
+
+Reads every point cloud that matches the input prefix, LAS and LAZ included. Writes `<output>_@<n>.pcd` with the points of each cylinder, `<output>_residual.pcd` with the rest and `<output>_cylinder.json` with start, end, axis, radius, length, number of points and coverage of each cylinder.
+
+| parameter | default | |
+|---|---|---|
+| `voxel_size` | 0.0 | 0 keeps the input density |
+| `normal_radius`, `normal_max_nn` | 0.03, 40 | normal estimation. keep the radius below twice the smallest pipe radius |
+| `min_radius`, `max_radius` | 0.01, 0.3 | |
+| `distance_tolerance` | 0.005 | distance of an inlier from the cylinder surface |
+| `normal_angle` | 20 | largest angle in degrees between a normal and the direction from the axis |
+| `min_points` | 150 | |
+| `min_length` | 0.15 | |
+| `max_gap` | 0.05 | a cylinder is cut where its points stop for longer than this along the axis |
+| `min_coverage` | 0.25 | shortest unbroken arc around the axis, as a fraction of the circle |
+| `axis_snap_angle` | 5 | axes within this angle of x, y or z are made parallel to it |
+| `hypotheses` | 50 | hypotheses scored per seed point |
+| `max_failures` | 200 | |
+| `seed` | 0 | random seed, for repeatable results |
+
+### cylinder_to_pipe
+
+Merges cylinders on one axis into straight pipes, snaps their radii to nominal sizes and joins two pipe ends that point at a common corner with an elbow. The elbow is a torus segment tangent to both pipes; both pipes are cut or extended to its tangent points. A short pipe in the corner of an elbow, at an angle to both pipes, is a piece of the bend and is dropped. Two parallel pipes joined by a short pipe at 45 degrees are an offset and keep the short pipe. Writes `<output>_pipe.json` (pipes and elbows) and `<output>_pipe.ply`.
+
+| parameter | default | |
+|---|---|---|
+| `merge_angle` | 5 | largest angle in degrees between cylinders that are merged |
+| `merge_distance` | 0.02 | largest offset between their axes |
+| `merge_gap` | 0.3 | largest gap between them along the axis |
+| `radius_tolerance` | 0.01 | largest radius difference for merges and elbows |
+| `pipe_standard` | cylinder_to_pipe/pipe_standard.json | nominal sizes and elbow rules. empty keeps the measured radii |
+| `nominal_tolerance` | 0.005 | largest radius change when a radius is snapped to a nominal size |
+| `min_pipe_length` | 0.05 | |
+| `elbow_angle_tolerance` | 10 | largest difference in degrees from an elbow angle of the standard |
+| `elbow_axis_tolerance` | 1.0 | largest distance between the two axes, in pipe radii |
+| `elbow_reach` | 0.5 | largest distance from a pipe end to the corner |
+| `elbow_piece_length` | 0.3 | shorter pipes in the corner of an elbow are dropped |
+
+The pipe standard file holds what a pipe standard defines. Relative paths are taken from the working directory, then from the repository root.
+
+```
+{
+    "name": "KS D 3507 ...",
+    "sizes": [{"name": "80A", "outer_diameter": 0.0891, "bend_radius": 0.1143}, ...],
+    "elbow": {"angles": [45, 90], "bend_ratio": 1.5, "min_bend_ratio": 1.0}
+}
+```
+
+`sizes` lists the nominal sizes with their outer diameters in meters. `bend_radius` of a size is the bend radius of its elbows; sizes without it use `bend_ratio` x outer diameter. `angles` are the elbow angles made by fittings, so two pipes at another angle are not joined. When the pipes are too short for the bend, the bend is made tighter down to `min_bend_ratio` x outer diameter, otherwise no elbow is made.
+
+### geo_to_bim_pipe
+
+Maps the pipes and elbows of `<input>_pipe.json` to IFC elements with a rule file and writes `<output>.ifc`. A pipe is an extruded circle, an elbow a disk swept along an arc (IfcSweptDiskSolid). Every element gets the property set `ScanToBIM` with the values below and the properties of its rule.
+
+| parameter | default | |
+|---|---|---|
+| `mapping_rule` | geo_to_bim_pipe/pipe_mapping_rule.json | |
+| `project_name`, `site_name`, `building_name`, `storey_name` | | IFC names |
+
+The rule file is a list of rules. The first rule whose conditions hold maps an element; an element with no rule is left out.
+
+```
+{
+    "rules": [
+        {
+            "condition": [["kind", "==", "pipe"], ["orientation", "==", "vertical"]],
+            "logic": "and",
+            "type": "IfcPipeSegment",
+            "predefined_type": "RIGIDSEGMENT",
+            "name": "riser {nominal}",
+            "properties": {"Material": "carbon steel"}
+        }
+    ]
+}
+```
+
+A condition is `[parameter, operator, value]` with the operators `==`, `!=`, `<`, `<=`, `>`, `>=` and `in`. `logic` is `and` (default) or `or`. The parameters are `kind` (pipe, elbow), `radius`, `diameter`, `length`, `nominal`, `orientation` (vertical, horizontal, inclined), `angle`, `points` and `coverage`. `name` may use them as `{parameter}`.
 
 ### pcd_to_seg_ml
 
