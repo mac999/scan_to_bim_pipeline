@@ -1,0 +1,26 @@
+{
+    "note": "the first rule whose conditions hold maps an element. condition: [parameter, operator, value]. parameters: kind (pipe, elbow), radius, diameter, length, nominal, orientation (vertical, horizontal, inclined), angle, points, coverage. logic: and (default) or or",
+    "rules": [
+        {
+            "condition": [["kind", "==", "elbow"]],
+            "type": "IfcPipeFitting",
+            "predefined_type": "BEND",
+            "name": "elbow {nominal}",
+            "properties": {"Material": "carbon steel"}
+        },
+        {
+            "condition": [["kind", "==", "pipe"], ["orientation", "==", "vertical"]],
+            "type": "IfcPipeSegment",
+            "predefined_type": "RIGIDSEGMENT",
+            "name": "riser {nominal}",
+            "properties": {"Material": "carbon steel"}
+        },
+        {
+            "condition": [["kind", "==", "pipe"]],
+            "type": "IfcPipeSegment",
+            "predefined_type": "RIGIDSEGMENT",
+            "name": "pipe {nominal}",
+            "properties": {"Material": "carbon steel"}
+        }
+    ]
+}
