@@ -151,6 +151,9 @@ python ./pipeline/app.py --input_path "./input/conference_room1/*.pcd" --stage i
 Pipes and elbows of an MEP scan (LAS, LAZ or PCD) are extracted by the pipe_rule pipeline, which writes IfcPipeSegment and IfcPipeFitting elements. Nominal pipe sizes and elbow rules are in [cylinder_to_pipe/pipe_standard.json](./cylinder_to_pipe/pipe_standard.json), the IFC mapping rules in [geo_to_bim_pipe/pipe_mapping_rule.json](./geo_to_bim_pipe/pipe_mapping_rule.json). The sample scan in ./input/kict_mep_zero_en_bdlg_parts is part of the mechanical room of the KICT zero energy building. The command line of each stage, results on the sample, options and the standard and rule files are described in [doc/pipe.md](./doc/pipe.md).</br>
 python ./pipeline/app.py --input_path "./input/kict_mep_zero_en_bdlg_parts/*.laz" --stage pipe_rule</br>
 106 cylinders, 78 pipes and 8 elbows are found in about a minute; the IFC file has 78 IfcPipeSegment and 8 IfcPipeFitting.</br>
+For large clouds pcd_to_cylinder searches a grid of tiles, each with a margin around it, and joins the pieces of a pipe cut by a tile border before the size and length thresholds are checked again. Set `tiles`, `tile_overlap` (0 picks the margin from `min_length` and `max_radius`) and `tile_workers` in the pcd_to_cylinder stage, or on the command line:</br>
+python pcd_to_cylinder/pcd_to_cylinder.py --input ./output/mep/clean --output ./output/mep/cyl --tiles "[2, 2]" --tile_workers 4</br>
+On the sample, 2 x 2 tiles in 4 processes give the same 78 pipes and 8 elbows in 29 s instead of 55 s. See the large point clouds section of [doc/pipe.md](./doc/pipe.md).</br>
 
 # test
 python -m pytest tests</br>
