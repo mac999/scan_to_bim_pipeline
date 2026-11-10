@@ -1,4 +1,4 @@
-import os, sys, json, subprocess
+import os, sys, subprocess
 from conftest import ROOT, write_json
 
 STAGE_CODE = '''import sys, argparse
@@ -20,12 +20,10 @@ def run_app(tmp_path, stages, cwd=None, **app_config):
     bin_dir = tmp_path / 'bin_root'
     os.makedirs(bin_dir, exist_ok=True)
     config = write_json(tmp_path / 'config.json', dict({
-        'app': 'pcd_pipeline',
         'root_path': str(tmp_path) + '/',
         'bin_path': str(bin_dir) + '/',
         'lib_path': ROOT + '/lib/',
-        'data_path': str(tmp_path) + '/input/',
-        'debug_gui': False}, **app_config))
+        'data_path': str(tmp_path) + '/input/'}, **app_config))
     os.makedirs(tmp_path / 'input', exist_ok=True)
     (tmp_path / 'input' / 'sample.pcd').write_text('')
     write_json(tmp_path / 'input' / 'sample_scan_to_bim.json', {'pipeline.test': stages})

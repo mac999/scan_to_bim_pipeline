@@ -1,10 +1,8 @@
 {
-    "app": "pcd_pipeline",
     "root_path": "./pipeline/",
     "bin_path": "./",
     "lib_path": "./lib/",
     "data_path": "./input/",
-    "debug_gui": false,
     "data_ext": [".las", ".laz", ".pcd", ".geojson"],
     "pipeline_tag": "scan_to_bim.json"
 }

@@ -96,12 +96,12 @@ Before running, install requirements_simple.txt (or requirements.txt) including 
 1. Modify /pipeline/config.json considering your input and output folder paths. For reference, the root folder name is scan_to_bim_pipeline, which you downloaded and installed from GitHub.</br>
 ```
 {
-    "app": "pcd_pipeline",
     "root_path": "./pipeline/",
     "bin_path": "./",
     "lib_path": "./lib/",
     "data_path": "./input/",
-    "debug_gui": false
+    "data_ext": [".las", ".laz", ".pcd", ".geojson"],
+    "pipeline_tag": "scan_to_bim.json"
 }
 ```
 2. Download the input sample files and copy them into the ./input folder. Refer to the [sample dataset](https://drive.google.com/drive/folders/1Jb32VkVEuhkKKZ8XVE9E8RLUw2S-VfSd).</br>
