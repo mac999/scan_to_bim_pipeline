@@ -42,3 +42,12 @@ def test_seg_to_geo_writes_hull_per_segment(tmp_path):
     assert ret.returncode == 0, ret.stdout + ret.stderr
     assert len(glob.glob(str(tmp_path / 'seg_to_geo_@*.json'))) == 3
     assert len(glob.glob(str(tmp_path / 'seg_to_geo_@*.pcd'))) == 3
+
+def test_pcd_density_writes_density_per_point(tmp_path):
+    write_room(tmp_path / 'room.pcd')
+    ret = run_bin('pcd_density', tmp_path / 'room.pcd', tmp_path / 'density.pcd', 8)
+    assert ret.returncode == 0, ret.stdout + ret.stderr
+    header = lambda f: open(f, 'rb').read(400).decode('ascii', 'ignore').splitlines()
+    points = lambda f: [l for l in header(f) if l.startswith('POINTS')]
+    assert any('intensity' in l for l in header(tmp_path / 'density.pcd') if l.startswith('FIELDS'))
+    assert points(tmp_path / 'density.pcd') == points(tmp_path / 'room.pcd')
