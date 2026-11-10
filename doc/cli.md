@@ -69,8 +69,8 @@ A pipeline file with the parameters that are most often changed:
 {
     "pipeline.pipe_rule": [
         {"type": "pcd_to_clean", "voxel_down_size": 0.01, "nb_radius_points": 10, "nb_radius": 0.03},
-        {"type": "pcd_to_cylinder", "min_radius": 0.01, "max_radius": 0.3, "tiles": [2, 2], "tile_workers": 4},
-        {"type": "cylinder_to_pipe", "pipe_standard": "cylinder_to_pipe/pipe_standard.json"},
+        {"type": "pcd_to_cylinder", "min_radius": 0.01, "max_radius": 0.3, "pipe_angles": [45, 90], "tiles": [2, 2], "tile_workers": 4},
+        {"type": "cylinder_to_pipe", "pipe_standard": "cylinder_to_pipe/pipe_standard.json", "min_length_ratio": 1.5},
         {"type": "geo_to_bim_pipe", "mapping_rule": "geo_to_bim_pipe/pipe_mapping_rule.json"}
     ]
 }
@@ -87,5 +87,7 @@ A mapping rule maps an element when all its conditions hold, and the first match
     ]
 }
 ```
+
+pcd_to_cylinder and cylinder_to_pipe also write `<output>_log.json` with their parameters, counts and the cylinders and pipes they rejected, with the reason and the point files, see [pipe.md](./pipe.md#shape-rules).
 
 `pcd_to_bbox/revit_family_types.json` and `seg_to_geo_ml/seg_to_geo_config.json` are kept as examples of a Revit family list and a segment color table. No stage reads them.

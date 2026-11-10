@@ -150,7 +150,7 @@ The pipe stages, with results on a sample scan, are also described in [pipe.md](
 
 Extracts cylinders, such as pipes, with RANSAC. A seed point and a neighbour with their normals give a cylinder hypothesis; the hypotheses are scored around the seed, the best one is refined by least squares on all points (axis from the normals, circle fit across the axis) and cut where its points stop along the axis. A cylinder is kept when its points cover an unbroken arc of at least `min_coverage`, so a pipe scanned from one side is still found while a false cylinder touching several pipes is not. Its points are then removed and the search goes on until `max_failures` seeds in a row give nothing.
 
-Reads every point cloud that matches the input prefix, LAS and LAZ included. Writes `<output>_@<n>.pcd` with the points of each cylinder, `<output>_residual.pcd` with the rest and `<output>_cylinder.json` with start, end, axis, radius, length, number of points and coverage of each cylinder.
+Reads every point cloud that matches the input prefix, LAS and LAZ included. Writes `<output>_@<n>.pcd` with the points of each cylinder, `<output>_residual.pcd` with the rest and `<output>_cylinder.json` with start, end, axis, radius, length, number of points and coverage of each cylinder. `<output>_log.json` holds the parameters, the counts and the cylinders rejected by `pipe_angles`, whose points are in `<output>_rejected_@<n>.pcd`.
 
 | parameter | default | |
 |---|---|---|
@@ -167,6 +167,8 @@ Reads every point cloud that matches the input prefix, LAS and LAZ included. Wri
 | `hypotheses` | 50 | hypotheses scored per seed point |
 | `max_failures` | 200 | |
 | `seed` | 0 | random seed, for repeatable results |
+| `pipe_angles` | [] | fitting angles, e.g. [45, 90]. axes that are not level, vertical or at a multiple of these angles from them, in plan from the grid, are rejected. [] allows any axis |
+| `grid_azimuth` | 0 | plan direction of the building grid from x, in degrees |
 | `tiles` | [1, 1] | tiles along x and y, or x, y and z. [1, 1] searches the whole cloud at once |
 | `tile_overlap` | 0 | margin around each tile. 0 takes max(`min_length`, 2 x `max_radius`) + `max_gap` |
 | `tile_workers` | 1 | tiles searched in parallel processes |
@@ -175,7 +177,7 @@ With more than one tile, each tile is searched together with the margin around i
 
 ### cylinder_to_pipe
 
-Merges cylinders on one axis into straight pipes, snaps their radii to nominal sizes and joins two pipe ends that point at a common corner with an elbow. The elbow is a torus segment tangent to both pipes; both pipes are cut or extended to its tangent points. A short pipe in the corner of an elbow, at an angle to both pipes, is a piece of the bend and is dropped. Two parallel pipes joined by a short pipe at 45 degrees are an offset and keep the short pipe. Writes `<output>_pipe.json` (pipes and elbows) and `<output>_pipe.ply`.
+Merges cylinders on one axis into straight pipes, snaps their radii to nominal sizes and joins two pipe ends that point at a common corner with an elbow. The elbow is a torus segment tangent to both pipes; both pipes are cut or extended to its tangent points. A short pipe in the corner of an elbow, at an angle to both pipes, is a piece of the bend and is dropped. Two parallel pipes joined by a short pipe at 45 degrees are an offset and keep the short pipe. Writes `<output>_pipe.json` (pipes and elbows), `<output>_pipe.ply` and `<output>_log.json` with the parameters, the counts and the pipes that were dropped, with the reason.
 
 | parameter | default | |
 |---|---|---|
@@ -190,6 +192,7 @@ Merges cylinders on one axis into straight pipes, snaps their radii to nominal s
 | `elbow_axis_tolerance` | 1.0 | largest distance between the two axes, in pipe radii |
 | `elbow_reach` | 0.5 | largest distance from a pipe end to the corner |
 | `elbow_piece_length` | 0.3 | shorter pipes in the corner of an elbow are dropped |
+| `min_length_ratio` | 0 | pipes shorter than this many diameters and not joined by an elbow are dropped. 0 keeps them |
 
 The pipe standard file holds what a pipe standard defines. Relative paths are taken from the working directory, then from the repository root.
 

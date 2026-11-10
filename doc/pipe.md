@@ -10,8 +10,8 @@ pipeline.pipe_rule(*.laz | *.las | *.pcd) > *.ifc
 | stage | input | output |
 |---|---|---|
 | pcd_to_clean | LAS, LAZ, PCD, PLY | `pcd_to_clean.pcd`, down sampled and without outliers |
-| pcd_to_cylinder | point cloud | `_@<n>.pcd` per cylinder, `_residual.pcd`, `_cylinder.json` |
-| cylinder_to_pipe | `_cylinder.json` | `_pipe.json` (pipes and elbows), `_pipe.ply` (mesh for checking) |
+| pcd_to_cylinder | point cloud | `_@<n>.pcd` per cylinder, `_residual.pcd`, `_cylinder.json`, `_log.json`, `_rejected_@<n>.pcd` |
+| cylinder_to_pipe | `_cylinder.json` | `_pipe.json` (pipes and elbows), `_pipe.ply` (mesh for checking), `_log.json` |
 | geo_to_bim_pipe | `_pipe.json` | `.ifc` with IfcPipeSegment and IfcPipeFitting |
 
 Coordinates are taken as meters. Scans in millimeters or feet have to be scaled first, or every length parameter below changed to that unit.
@@ -34,8 +34,8 @@ Each stage is also a program of its own. `--input` is a path prefix; the stage r
 
 ```
 python pcd_to_clean/pcd_to_clean.py --input ./input/kict_mep_zero_en_bdlg_parts/kict_mep_zero_en_bdlg_parts.laz --output ./output/mep/clean --voxel_down_size 0.01 --stat_neighbors 20 --stat_std_ratio 2.0 --nb_radius_points 10 --nb_radius 0.03
-python pcd_to_cylinder/pcd_to_cylinder.py --input ./output/mep/clean --output ./output/mep/cyl --min_radius 0.01 --max_radius 0.3
-python cylinder_to_pipe/cylinder_to_pipe.py --input ./output/mep/cyl --output ./output/mep/net --pipe_standard cylinder_to_pipe/pipe_standard.json
+python pcd_to_cylinder/pcd_to_cylinder.py --input ./output/mep/clean --output ./output/mep/cyl --min_radius 0.01 --max_radius 0.3 --pipe_angles "[45, 90]"
+python cylinder_to_pipe/cylinder_to_pipe.py --input ./output/mep/cyl --output ./output/mep/net --pipe_standard cylinder_to_pipe/pipe_standard.json --min_length_ratio 1.5
 python geo_to_bim_pipe/geo_to_bim_pipe.py --input ./output/mep/net --output ./output/mep/mep --mapping_rule geo_to_bim_pipe/pipe_mapping_rule.json
 ```
 
@@ -46,30 +46,31 @@ The messages of a run on the sample (the per cylinder lines shortened):
 cylinder 0: r=0.098 length=1.65 points=9556 coverage=0.89
 cylinder 1: r=0.022 length=0.80 points=287 coverage=0.28
 ...
-106 cylinders, 132222 points left, 51.4 s
-106 cylinders merged into 78 pipes, 8 elbows, 64 pipes with a nominal size
-86 elements saved to .../geo_to_bim_pipe/geo_to_bim_pipe.ifc: {'IfcPipeSegment': 78, 'IfcPipeFitting': 8}
+80 cylinders, 24 rejected, 141060 points left, 37.3 s
+80 cylinders merged into 53 pipes, 9 elbows, 48 pipes with a nominal size, 5 dropped
+62 elements saved to .../geo_to_bim_pipe/geo_to_bim_pipe.ifc: {'IfcPipeSegment': 53, 'IfcPipeFitting': 9}
 ```
 
 ## results on the sample
 
-The whole run takes about one minute on a 20 core ARM machine, most of it in pcd_to_cylinder.
+The whole run takes under a minute on a 20 core ARM machine, most of it in pcd_to_cylinder. The sample pipeline uses the shape rules below (`pipe_angles` [45, 90], `min_length_ratio` 1.5).
 
 <p align="center">
 <img width="360" src="./pipe_scan.png"/><img width="360" src="./pipe_cylinders.png"/></br>
-<img width="360" src="./pipe_residual.png"/><img width="360" src="./pipe_bim.png"/></br>
-<img width="360" src="./pipe_ifc.png"/>
+<img width="360" src="./pipe_residual.png"/><img width="360" src="./pipe_rejected.png"/></br>
+<img width="360" src="./pipe_bim.png"/><img width="360" src="./pipe_ifc.png"/>
 </p>
 
 1. pcd_to_clean. A 1 cm voxel grid and the outlier filters leave 263,967 points.
-2. pcd_to_cylinder. 106 cylinders, one color each. Pipes of the rack that are scanned from one side only are found, because a cylinder needs an unbroken arc of a quarter of the circle, not the full circle.
-3. The residual. 132,222 points are not on any cylinder: pumps, valves, flanges, the panel, cable trays and the elbows, whose bends are not cylinders. The flat trays above the rack stay here as they should.
-4. cylinder_to_pipe. 106 cylinders are merged into 78 straight pipes (blue), and 8 elbows (red) are made where two pipe ends meet at 90 degrees. 64 pipes got a nominal size, most of them 80A, 90A and 175A. Each elbow is tangent to both pipes with no gap.
-5. geo_to_bim_pipe. The IFC file opened again with ifcopenshell: 78 IfcPipeSegment (pipes blue, risers green) and 8 IfcPipeFitting BEND (red). All 86 shapes are valid solids.
+2. pcd_to_cylinder. 80 cylinders, one color each. Pipes of the rack that are scanned from one side only are found, because a cylinder needs an unbroken arc of a quarter of the circle, not the full circle.
+3. The residual. 141,060 points are not on any cylinder: pumps, valves, flanges, the panel, cable trays and the elbows, whose bends are not cylinders. The flat trays above the rack stay here as they should.
+4. Rejected. 24 cylinders whose axes no fitting can make (red) are rejected in pcd_to_cylinder, mostly on the curved casings of pumps and valves. 5 pipes are dropped in cylinder_to_pipe (orange): 4 short, thick cylinders of pump bodies and 1 piece inside a bend.
+5. cylinder_to_pipe. 80 cylinders are merged into 53 straight pipes (blue), and 9 elbows (red) are made where two pipe ends meet at 90 degrees. 48 pipes got a nominal size, most of them 80A, 90A, 65A and 100A. Each elbow is tangent to both pipes with no gap.
+6. geo_to_bim_pipe. The IFC file opened again with ifcopenshell: 53 IfcPipeSegment (pipes blue, risers green) and 9 IfcPipeFitting BEND (red). All 62 shapes are valid solids.
 
 What it does not do yet:
 
-- The cylindrical bodies of pumps and the expansion tank come out as short, thick pipes. A rule on `length` and `diameter` can map them to another class or leave them out.
+- The expansion tank is upright and longer than its diameter, so the shape rules keep it as a pipe. A mapping rule on `diameter` can map it to another class.
 - Where pipes turn twice in a short distance the pieces between the turns are too short to find, so those elbows are missing.
 - The measured diameter of an insulated pipe is the insulation, so its nominal size is that of a larger pipe. Use the nominal sizes as a guide.
 - Tees, reducers, valves and flanges are not modeled. Their points are in the residual.
@@ -87,6 +88,8 @@ All stage parameters are listed in [sbdl.md](./sbdl.md). These are the ones to l
 | `min_coverage` | pcd_to_cylinder | lower it for pipes seen from one side only, raise it when false cylinders appear between pipes lying side by side |
 | `min_points`, `min_length` | pcd_to_cylinder | lower them to keep short pieces such as the pipe between two elbows |
 | `axis_snap_angle` | pcd_to_cylinder | 0 for sloped pipes such as drains |
+| `pipe_angles`, `grid_azimuth` | pcd_to_cylinder | the fitting angles of the piping and the direction of the building grid, see shape rules |
+| `min_length_ratio` | cylinder_to_pipe | the shortest pipe as a multiple of its diameter, see shape rules |
 | `merge_gap` | cylinder_to_pipe | the largest gap along a pipe, such as a valve or a hanger that hides the pipe |
 | `pipe_standard` | cylinder_to_pipe | another file for another standard. empty keeps the measured radii |
 | `nominal_tolerance` | cylinder_to_pipe | how far a measured radius may be from a nominal size |
@@ -103,9 +106,55 @@ The SBDL file of the sample sets them like this:
     "max_radius": 0.3,
     "distance_tolerance": 0.005,
     "min_coverage": 0.25,
-    "axis_snap_angle": 5.0
+    "axis_snap_angle": 5.0,
+    "pipe_angles": [45, 90]
 }
 ```
+
+## shape rules
+
+RANSAC fits a cylinder to any curved surface, including pump casings, valve bodies and tank heads. Two facts about piping tell most of these apart from pipes.
+
+- A pipe run turns only by the angles of its fittings, usually 90 and 45 degrees, sometimes 30 or 60. So a pipe axis is level or vertical, or at a multiple of a fitting angle from them, and its plan direction is the building grid turned by such a multiple. With `pipe_angles` [45, 90] the axis must lie within `axis_snap_angle` of one of 9 directions (x, y, z, the 4 level diagonals and the 4 diagonals at 45 degrees up); [30, 45, 60, 90] gives 33 directions and [90] only x, y and z. A cylinder on another axis is rejected and its points are left for other cylinders. A cylinder near an allowed direction is snapped to it. `grid_azimuth` turns the grid when the scan is not aligned with x and y. [] (the default) allows any axis as before.
+- A pipe is long for its diameter. Pump bodies and motor housings are short and thick. `min_length_ratio` drops pipes shorter than that many diameters, unless an elbow joins them. It is applied after merging, so the short pieces of one long pipe are not lost. 0 (the default) keeps them.
+
+Results on the sample, with pipes on x, y or z and at least 2 diameters long counted as real pipes:
+
+| run | cylinders | pipes | elbows | real pipe length found | other shapes |
+|---|---|---|---|---|---|
+| no rules, seed 1 | 118 | 85 | 9 | 91 % | 32 |
+| no rules, seed 2 | 108 | 79 | 10 | 85 % | 27 |
+| rules, seed 0 | 80 | 53 | 9 | 88 % | 7 |
+| rules, seed 1 | 68 | 45 | 8 | 87 % | 5 |
+| rules, seed 2 | 83 | 56 | 8 | 86 % | 4 |
+| rules, 2 x 2 tiles | 78 | 56 | 11 | 92 % | 7 |
+
+The real pipe length is the share of the real pipes of a run without rules (2 x 2 tiles, 59.8 m) found again. The rules remove most of the other shapes and find the real pipes as well as a run without them; the spread is that of RANSAC itself. [90] alone gave a few percent more real pipe length on this room, which has no 45 degree runs.
+
+Each stage writes what it rejected to `<output>_log.json`, so a result can be checked without running it again:
+
+```
+pcd_to_cylinder_log.json
+{"stage": "pcd_to_cylinder", "input": [...], "parameters": {...}, "points": 263967, "cylinders": 80,
+ "rejected": 24, "residual": 141060, "seconds": 37.3,
+ "rejected_cylinders": [{"id": 0, "reason": "direction", "elevation": 66.08, "azimuth": 87.71,
+                         "file": "pcd_to_cylinder_rejected_@0.pcd", "start": [...], "end": [...], "axis": [...],
+                         "radius": 0.099, "length": 0.24, "points": 499, "coverage": 0.56}, ...]}
+
+cylinder_to_pipe_log.json
+{"stage": "cylinder_to_pipe", "input": [...], "parameters": {...}, "cylinders": 80, "pipes": 53, "elbows": 9,
+ "dropped": 5,
+ "dropped_pipes": [{"reason": "length_ratio", "length_ratio": 0.62, "id": 4, "start": [...], "end": [...],
+                    "radius": 0.202, "nominal": null, "length": 0.25, "cylinders": [31], ...}, ...]}
+```
+
+`elevation` is the angle of the axis from the level plane and `azimuth` its plan direction from the grid, both in degrees. The points of each rejected cylinder are in the `file` next to the log; those of a dropped pipe are in the `_@<n>.pcd` files of its `cylinders`. The reasons are `direction` (pcd_to_cylinder), `elbow_piece`, `short` (below `min_pipe_length`) and `length_ratio` (cylinder_to_pipe). A surface found again from other seeds is listed once.
+
+<p align="center">
+<img width="360" src="./pipe_ifc_no_rules.png"/><img width="360" src="./pipe_ifc.png"/>
+</p>
+
+Without rules (left) and with them (right).
 
 ## large point clouds
 
@@ -127,17 +176,17 @@ Cutting a pipe at a tile border leaves two pieces that may each fall below `min_
 2. A cylinder found in two tiles, or in two pieces, is joined into one: same axis and radius, overlapping or with a gap below `max_gap`. The joined cylinder is refitted on all its points.
 3. The thresholds are checked again on the joined cylinders, and a point found by two cylinders stays with the larger one. `_cylinder.json` looks the same as without tiles, so the next stages do not change.
 
-On the sample with 2 x 2 tiles (margin 0.65 m):
+On the sample with 2 x 2 tiles (margin 0.65 m) and the shape rules:
 
 | run | cylinders | pipes | elbows | time |
 |---|---|---|---|---|
-| whole cloud, seed 0 | 106 | 78 | 8 | 55 s |
-| whole cloud, seed 1 | 118 | 85 | 9 | 55 s |
-| whole cloud, seed 2 | 108 | 79 | 10 | 50 s |
-| 2 x 2 tiles, 1 worker | 95 | 78 | 8 | 84 s |
-| 2 x 2 tiles, 4 workers | 95 | 78 | 8 | 29 s |
+| whole cloud, seed 0 | 80 | 53 | 9 | 37 s |
+| whole cloud, seed 1 | 68 | 45 | 8 | 24 s |
+| whole cloud, seed 2 | 83 | 56 | 8 | 40 s |
+| 2 x 2 tiles, 1 worker | 78 | 56 | 11 | 85 s |
+| 2 x 2 tiles, 4 workers | 78 | 56 | 11 | 32 s |
 
-84 % of the pipe length of the whole cloud run lies on pipes of the tiled run. Two whole cloud runs with other seeds match it by 84 % and 85 %, so the tiles change the result no more than the random sampling of RANSAC does. There are fewer cylinders because pieces of one pipe that the whole cloud run kept apart are joined. A tile with its margin holds more points than a quarter of the cloud, so on a small cloud like this the tiles pay off only in parallel. On large clouds the tiles also bound the work of each search. The whole cloud is still loaded once, so memory is not reduced.
+89 % of the pipe length of the whole cloud run (seed 0) lies on pipes of the tiled run. Two whole cloud runs with other seeds match it by 83 % and 86 %, so the tiles change the result no more than the random sampling of RANSAC does. Without the shape rules the figures were 84 % against 84 % and 85 %. There are fewer cylinders because pieces of one pipe that the whole cloud run kept apart are joined. A tile with its margin holds more points than a quarter of the cloud, so on a small cloud like this the tiles pay off only in parallel. On large clouds the tiles also bound the work of each search. The whole cloud is still loaded once, so memory is not reduced.
 
 ## pipe standard file
 
@@ -190,7 +239,7 @@ The parameters a condition can use are `kind`, `radius`, `diameter`, `length`, `
 
 ## tests
 
-`tests/test_cylinder.py` checks the stages on synthetic pipes: a pipe scanned from one side next to a wall, axis snapping and splitting at gaps, pipes joined across a tile border, merging, nominal sizes, elbows with their tangent points, no elbow at a tee or an odd angle, elbow pieces and 45 degree offsets, the mapping rules, and a run of the three stages whose IFC elbow is checked against a quarter torus.
+`tests/test_cylinder.py` checks the stages on synthetic pipes: a pipe scanned from one side next to a wall, axis snapping and splitting at gaps, pipes joined across a tile border, pipe directions and the rejection of axes off the fitting angles, the stage logs of rejected cylinders and dropped short pipes, merging, nominal sizes, elbows with their tangent points, no elbow at a tee or an odd angle, elbow pieces and 45 degree offsets, the mapping rules, and a run of the three stages whose IFC elbow is checked against a quarter torus.
 
 ```
 python -m pytest tests/test_cylinder.py
@@ -206,3 +255,4 @@ python -m pytest tests/test_cylinder.py
 | 2026.11 | geo_to_bim_pipe: IfcPipeSegment as extruded circles, IfcPipeFitting BEND as a disk swept along an arc, classes and properties from a mapping rule file. |
 | 2026.11 | pipe_rule sample pipeline on part of the KICT zero energy building mechanical room. |
 | 2026.11 | pcd_to_cylinder: tiled search with a margin around each tile, joining of pieces across tile borders, tiles in parallel. |
+| 2026.11 | shape rules: axes only at multiples of the fitting angles (pipe_angles, grid_azimuth) and a shortest pipe per diameter (min_length_ratio). Stage logs with the rejected cylinders and dropped pipes and their points. |
