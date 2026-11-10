@@ -167,6 +167,11 @@ Reads every point cloud that matches the input prefix, LAS and LAZ included. Wri
 | `hypotheses` | 50 | hypotheses scored per seed point |
 | `max_failures` | 200 | |
 | `seed` | 0 | random seed, for repeatable results |
+| `tiles` | [1, 1] | tiles along x and y, or x, y and z. [1, 1] searches the whole cloud at once |
+| `tile_overlap` | 0 | margin around each tile. 0 takes max(`min_length`, 2 x `max_radius`) + `max_gap` |
+| `tile_workers` | 1 | tiles searched in parallel processes |
+
+With more than one tile, each tile is searched together with the margin around it. A cylinder that crosses a tile border is then found with at least the margin of its length in some tile, so the thresholds above still hold. Pieces of one cylinder from neighbouring tiles are joined, refitted on all their points and checked once more against the thresholds. A point found by two cylinders stays with the larger one.
 
 ### cylinder_to_pipe
 

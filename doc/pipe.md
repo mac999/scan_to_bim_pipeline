@@ -107,6 +107,38 @@ The SBDL file of the sample sets them like this:
 }
 ```
 
+## large point clouds
+
+pcd_to_cylinder can split the cloud into a grid of tiles with `tiles` and search them one by one or in parallel (`tile_workers`). The search time of a tile grows with its points times its cylinders, so smaller tiles in parallel finish sooner.
+
+```
+python pcd_to_cylinder/pcd_to_cylinder.py --input ./output/mep/clean --output ./output/mep/cyl --tiles "[2, 2]" --tile_workers 4
+```
+
+or in the SBDL file:
+
+```
+{"type": "pcd_to_cylinder", "tiles": [2, 2], "tile_overlap": 0, "tile_workers": 4}
+```
+
+Cutting a pipe at a tile border leaves two pieces that may each fall below `min_points` or `min_length`, or below `min_coverage` when the border runs along the pipe. Three things keep the result close to that of the whole cloud.
+
+1. Each tile is searched with a margin (halo) around it, as in the chunk buffers of lidR and the buffered splitters of PDAL. With a margin of at least `min_length` and the pipe diameter, a cylinder that crosses into a tile is seen there with at least the margin of its length and its whole cross section, so it passes the same thresholds as in the whole cloud. `tile_overlap` 0 picks max(`min_length`, 2 x `max_radius`) + `max_gap`.
+2. A cylinder found in two tiles, or in two pieces, is joined into one: same axis and radius, overlapping or with a gap below `max_gap`. The joined cylinder is refitted on all its points.
+3. The thresholds are checked again on the joined cylinders, and a point found by two cylinders stays with the larger one. `_cylinder.json` looks the same as without tiles, so the next stages do not change.
+
+On the sample with 2 x 2 tiles (margin 0.65 m):
+
+| run | cylinders | pipes | elbows | time |
+|---|---|---|---|---|
+| whole cloud, seed 0 | 106 | 78 | 8 | 55 s |
+| whole cloud, seed 1 | 118 | 85 | 9 | 55 s |
+| whole cloud, seed 2 | 108 | 79 | 10 | 50 s |
+| 2 x 2 tiles, 1 worker | 95 | 78 | 8 | 84 s |
+| 2 x 2 tiles, 4 workers | 95 | 78 | 8 | 29 s |
+
+84 % of the pipe length of the whole cloud run lies on pipes of the tiled run. Two whole cloud runs with other seeds match it by 84 % and 85 %, so the tiles change the result no more than the random sampling of RANSAC does. There are fewer cylinders because pieces of one pipe that the whole cloud run kept apart are joined. A tile with its margin holds more points than a quarter of the cloud, so on a small cloud like this the tiles pay off only in parallel. On large clouds the tiles also bound the work of each search. The whole cloud is still loaded once, so memory is not reduced.
+
 ## pipe standard file
 
 [cylinder_to_pipe/pipe_standard.json](../cylinder_to_pipe/pipe_standard.json) holds the sizes of KS D 3507 (15A to 300A) and the long radius bends of KS B 1522. For another standard copy the file, change the sizes and give the copy as `pipe_standard`.
@@ -158,7 +190,7 @@ The parameters a condition can use are `kind`, `radius`, `diameter`, `length`, `
 
 ## tests
 
-`tests/test_cylinder.py` checks the stages on synthetic pipes: a pipe scanned from one side next to a wall, axis snapping and splitting at gaps, merging, nominal sizes, elbows with their tangent points, no elbow at a tee or an odd angle, elbow pieces and 45 degree offsets, the mapping rules, and a run of the three stages whose IFC elbow is checked against a quarter torus.
+`tests/test_cylinder.py` checks the stages on synthetic pipes: a pipe scanned from one side next to a wall, axis snapping and splitting at gaps, pipes joined across a tile border, merging, nominal sizes, elbows with their tangent points, no elbow at a tee or an odd angle, elbow pieces and 45 degree offsets, the mapping rules, and a run of the three stages whose IFC elbow is checked against a quarter torus.
 
 ```
 python -m pytest tests/test_cylinder.py
@@ -173,3 +205,4 @@ python -m pytest tests/test_cylinder.py
 | 2026.11 | cylinder_to_pipe: merging on one axis, nominal sizes and elbows from a pipe standard file, removal of short pieces inside a bend. |
 | 2026.11 | geo_to_bim_pipe: IfcPipeSegment as extruded circles, IfcPipeFitting BEND as a disk swept along an arc, classes and properties from a mapping rule file. |
 | 2026.11 | pipe_rule sample pipeline on part of the KICT zero energy building mechanical room. |
+| 2026.11 | pcd_to_cylinder: tiled search with a margin around each tile, joining of pieces across tile borders, tiles in parallel. |
