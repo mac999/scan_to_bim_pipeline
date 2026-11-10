@@ -1,0 +1,28 @@
+{
+    "name": "KS D 3507 carbon steel pipe for ordinary piping, KS B 1522 butt welding elbows",
+    "note": "lengths in meters, angles in degrees. a size may give its own elbow bend_radius, otherwise bend_ratio x outer diameter is used",
+    "sizes": [
+        {"name": "15A", "outer_diameter": 0.0217, "bend_radius": 0.0381},
+        {"name": "20A", "outer_diameter": 0.0272, "bend_radius": 0.0381},
+        {"name": "25A", "outer_diameter": 0.0340, "bend_radius": 0.0381},
+        {"name": "32A", "outer_diameter": 0.0427, "bend_radius": 0.0476},
+        {"name": "40A", "outer_diameter": 0.0486, "bend_radius": 0.0572},
+        {"name": "50A", "outer_diameter": 0.0605, "bend_radius": 0.0762},
+        {"name": "65A", "outer_diameter": 0.0763, "bend_radius": 0.0953},
+        {"name": "80A", "outer_diameter": 0.0891, "bend_radius": 0.1143},
+        {"name": "90A", "outer_diameter": 0.1016, "bend_radius": 0.1334},
+        {"name": "100A", "outer_diameter": 0.1143, "bend_radius": 0.1524},
+        {"name": "125A", "outer_diameter": 0.1398, "bend_radius": 0.1905},
+        {"name": "150A", "outer_diameter": 0.1652, "bend_radius": 0.2286},
+        {"name": "175A", "outer_diameter": 0.1907, "bend_radius": 0.2667},
+        {"name": "200A", "outer_diameter": 0.2163, "bend_radius": 0.3048},
+        {"name": "225A", "outer_diameter": 0.2418, "bend_radius": 0.3429},
+        {"name": "250A", "outer_diameter": 0.2674, "bend_radius": 0.3810},
+        {"name": "300A", "outer_diameter": 0.3185, "bend_radius": 0.4572}
+    ],
+    "elbow": {
+        "angles": [45, 90],
+        "bend_ratio": 1.5,
+        "min_bend_ratio": 1.0
+    }
+}
