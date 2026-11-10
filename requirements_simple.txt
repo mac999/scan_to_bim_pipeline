@@ -5,7 +5,6 @@
 numpy
 scipy
 scikit-learn
-sympy
 pandas
 matplotlib
 Pillow

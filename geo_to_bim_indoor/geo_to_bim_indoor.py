@@ -5,7 +5,6 @@
 # ref: https://pypi.org/project/alphashape/
 
 import os, sys, argparse, alphashape, json, glob
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import open3d as o3d
@@ -20,38 +19,7 @@ sys.path.insert(0, os.path.dirname(os.getcwd()))
 
 args = None
 
-def importJson(fname): 
-    data = []
-    with open(fname) as f:
-        data = json.load(f)
-    return data['coordinates']
-
-def read_data(fpath):
-    poly = []
-
-    filename, file_extension = os.path.splitext(fpath) 
-    if file_extension.find(".json") >= 0:
-        multipoly = importJson(fpath)
-        print(fpath, "imported.")
-
-        print(type(multipoly))
-        for index in range(len(multipoly)):
-            pl = multipoly[index]
-            # poly.append([])
-            for p in pl:
-                poly.extend(p)
-        # poly = multipoly[0][0]
-    else:
-        pcd = o3d.io.read_point_cloud(fpath)
-        for p in pcd.points:
-            poly.extend([p[0], p[1], p[2]])
-
-    print(poly)
-    return poly
-
 def get_obj_type(poly):
-    global args
-    
     # rule. DL.
     label = 'none'
 
@@ -73,7 +41,6 @@ def get_obj_type(poly):
 
 def get_alpha_shape(input_poly, ratio):
     alpha_shape = alphashape.alphashape(input_poly, ratio) # indoor detail convex polygon = 0.7 # convex - concave hull
-    # poly3d = scan_to_bim_lib.transform_2d_to_3d(tfInv, poly2d) # for testing
     # print('*alpha shape')
     # print(alpha_shape)
 
@@ -83,7 +50,7 @@ def get_alpha_shape(input_poly, ratio):
     if alpha_type.find('Trimesh') > 0:  # if 3D mesh model
         poly = [list(v) for v in alpha_shape.vertices]
         if args is not None and args.log_view:
-            fig = plt.figure()
+            plt.figure()
             ax = plt.axes(projection='3d')
             ax.plot_trisurf(*zip(*alpha_shape.vertices), triangles=alpha_shape.faces)
             plt.show()
@@ -98,25 +65,6 @@ def get_alpha_shape(input_poly, ratio):
     else:
         poly = list(alpha_shape.exterior.coords)  # if 2D polygon model
     return poly
-
-def transform_3D_to_2D(tf, poly):
-    poly4d = scan_to_bim_lib.transform_3d_to_4d(tf, poly)
-    poly4d_mean = np.mean(poly4d, axis=0)
-    poly2d = scan_to_bim_lib.convert_3d_2d_vector(poly4d)
-
-    return poly2d, poly4d_mean
-
-def transform_2D_to_3D(tf, shp, mean4d):
-    shp2d = scan_to_bim_lib.convert_3d_2d_vector(shp)
-    obb = scan_to_bim_lib.get_OBB(shp2d)
-    vector4d = scan_to_bim_lib.convert_2d_4d_vector(obb)
-    mean4d[0] = mean4d[1] = 0
-    vector4d = vector4d + mean4d
-    tfInv = np.linalg.inv(tf)
-    poly4d = np.matmul(vector4d, tfInv) # Y = np.dot(X, tf)
-    plane3d = scan_to_bim_lib.convert_4d_3d_vector(poly4d)
-
-    return plane3d, obb
 
 def save_data(outfilename, shp, plane3d, obb):
     fpath = outfilename + '.json'
@@ -220,15 +168,6 @@ def save_ifc(fname, labels, obbs, meshes=None):
     print(f'{count} elements saved to {fname}')
 
 def geo_to_obj(infile, outfilename):
-    # read file
-    ''' poly = read_data(infile)
-    label, params = get_obj_type(poly)    
-
-    tf, centroid = scan_to_bim_lib.align_transform_matrix(poly)    # z vector alignment with normal vector of plane based poly
-    poly2d, mean4d = transform_3D_to_2D(tf, poly)           # transform 3D to 2D
-    bound2d = get_alpha_shape(poly2d, 0) # 0.15) # 0.2)     # alpha shape process
-    plane3d, obb = transform_2D_to_3D(tf, bound2d, mean4d)  # transform 2D to 3D with OBB
-    '''
     pcd = o3d.io.read_point_cloud(infile)
     poly = np.asarray(pcd.points)
     label, params = get_obj_type(poly)    
