@@ -1,6 +1,0 @@
-dataset:
-model:
-pipeline:
-  lr: learning_rate
-  betas: [beta_1, beta_2]
-  eps: epsilon
