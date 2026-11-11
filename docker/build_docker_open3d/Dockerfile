@@ -4,6 +4,7 @@ MAINTAINER kangtaewook
 RUN apt-get update
 RUN apt-get install -y libx11-6 libgl1-mesa-glx
 RUN pip install torch open3d==0.16.0 tensorboard numpy
+RUN pip install "laspy[lazrs]"
 
 # FROM 17867415107/open3d_gpu
 # RUN apt-get install python3-pip -y
