@@ -235,15 +235,40 @@ A condition is `[parameter, operator, value]` with the operators `==`, `!=`, `<`
 
 ### pcd_to_seg_ml
 
-Open3D-ML semantic segmentation, run in the docker image given in `cmd`.
+Labels every point with a deep learning segmentation model. It reads las, laz, pcd, ply, xyz and pts and writes `<output>.las` or `.laz` with the class id in the `classification` field. No other stage reads the result yet.
+
+The stage needs open3d.ml with torch and runs in the docker image built from `docker/build_docker_open3d`. `cmd` starts the container through `docker/docker_ml_gpu.sh`, which mounts the repository at `/pcd_pl`. `remote_io_root` maps the input and output paths to that mount.
 
 | parameter | default | |
 |---|---|---|
-| `model_config` | configs/randlanet_s3dis.yml | relative to the module |
-| `ckpt` | logs/randlanet_s3dis_normalvector_20230707_198.pth | relative to the module |
-| `ckpt_url` | Open3D model zoo RandLA-Net S3DIS | downloaded when `ckpt` is missing |
-| `max_input_file` | 3 | |
+| `model` | model_randlanet_s3dis.json | model file, relative to the module |
+| `output_format` | las | `las` or `laz` |
+| `color` | class | rgb of the output points: `class` color, or the `original` color of the input |
 | `remote_io_root` | `$bin_path:/pcd_pl/` | host to container path mapping |
+
+A las or laz input is copied with all its dimensions and its CRS, and only `classification` and, with `color` `class`, the rgb are replaced. `<output>_log.json` lists the parameters and the point count of each class.
+
+The model file names the network and its classes:
+
+```
+{
+    "name": "RandLA-Net S3DIS",
+    "framework": "open3d_ml",
+    "model_config": "configs/randlanet_s3dis.yml",
+    "ckpt": "logs/randlanet_s3dis_202201071330utc.pth",
+    "ckpt_url": "https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_s3dis_202201071330utc.pth",
+    "feature": "rgb",
+    "classes": [{"name": "ceiling", "color": [233, 229, 107]}, ...]
+}
+```
+
+| key | |
+|---|---|
+| `framework` | `open3d_ml`, the only one so far |
+| `model_config` | Open3D-ML yml of the network. `model.name` and `pipeline.name` select the classes of `open3d.ml.torch` |
+| `ckpt`, `ckpt_url` | checkpoint, downloaded from `ckpt_url` when missing. relative paths are taken from the module |
+| `feature` | input feature next to xyz: `rgb` (0-255) or `normal` (estimated when the cloud has none). must match the checkpoint |
+| `classes` | name and rgb of each class id, in the order of the network output. at most 32, the limit of las point format 3 |
 
 ## pipeline/config.json
 
