@@ -1,0 +1,23 @@
+{
+    "name": "RandLA-Net S3DIS",
+    "framework": "open3d_ml",
+    "model_config": "configs/randlanet_s3dis.yml",
+    "ckpt": "logs/randlanet_s3dis_202201071330utc.pth",
+    "ckpt_url": "https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_s3dis_202201071330utc.pth",
+    "feature": "rgb",
+    "classes": [
+        {"name": "ceiling", "color": [233, 229, 107]},
+        {"name": "floor", "color": [95, 156, 196]},
+        {"name": "wall", "color": [179, 116, 81]},
+        {"name": "beam", "color": [241, 149, 131]},
+        {"name": "column", "color": [81, 163, 163]},
+        {"name": "window", "color": [223, 160, 168]},
+        {"name": "door", "color": [142, 86, 114]},
+        {"name": "table", "color": [153, 223, 138]},
+        {"name": "chair", "color": [149, 149, 241]},
+        {"name": "sofa", "color": [107, 229, 233]},
+        {"name": "bookcase", "color": [233, 107, 229]},
+        {"name": "board", "color": [107, 233, 107]},
+        {"name": "clutter", "color": [160, 160, 160]}
+    ]
+}
