@@ -16,7 +16,7 @@ def make_stage(bin_dir, name, exit_code=0):
     with open(bin_dir / name / (name + '.py'), 'w') as f:
         f.write(STAGE_CODE.replace('EXIT_CODE', str(exit_code)))
 
-def run_app(tmp_path, stages, cwd=None, **app_config):
+def run_app(tmp_path, stages, cwd=None, input_path=None, **app_config):
     bin_dir = tmp_path / 'bin_root'
     os.makedirs(bin_dir, exist_ok=True)
     config = write_json(tmp_path / 'config.json', dict({
@@ -29,7 +29,7 @@ def run_app(tmp_path, stages, cwd=None, **app_config):
     write_json(tmp_path / 'input' / 'sample_scan_to_bim.json', {'pipeline.test': stages})
     cmd = [sys.executable, os.path.join(ROOT, 'pipeline', 'app.py'),
            '--config', config,
-           '--input_path', str(tmp_path) + '/input/*.*',
+           '--input_path', input_path or str(tmp_path) + '/input/*.*',
            '--output_path', str(tmp_path) + '/output/']
     return subprocess.run(cmd, cwd=cwd or tmp_path, capture_output=True, text=True)
 
@@ -109,7 +109,7 @@ def test_config_paths_resolve_from_repository_root(tmp_path):
     assert conf.lib_path == ROOT + '/lib/'
     assert conf.root_path == ROOT + '/pipeline/'
 
-def fake_docker(tmp_path, monkeypatch, exit_code=0):
+def fake_docker(tmp_path, monkeypatch, exit_code=0, **kw):
     # runs the real docker/docker_ml_gpu.sh with a docker stand-in on PATH that records its arguments.
     # bin_path is the folder that holds docker/, input/ and output/, mounted at /pcd_pl
     os.makedirs(tmp_path / 'docker')
@@ -122,7 +122,7 @@ def fake_docker(tmp_path, monkeypatch, exit_code=0):
     stage = {'type': 'pcd_to_seg_ml', 'remote_io_root': '$bin_path:/pcd_pl/',
              'cmd': 'bash $bin_path/docker/docker_ml_gpu.sh open3d_gpu python /pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py',
              'note': 'not forwarded'}
-    return run_app(tmp_path, [stage], bin_path=str(tmp_path) + '/')
+    return run_app(tmp_path, [stage], bin_path=str(tmp_path) + '/', **kw)
 
 def test_docker_stage_maps_paths_into_the_container(tmp_path, monkeypatch):
     ret = fake_docker(tmp_path, monkeypatch)
@@ -135,6 +135,12 @@ def test_docker_stage_maps_paths_into_the_container(tmp_path, monkeypatch):
     assert args[args.index('--input') + 1] == '/pcd_pl/input/sample.pcd'
     assert args[args.index('--output') + 1] == '/pcd_pl/output/sample/pcd_to_seg_ml/pcd_to_seg_ml'
     assert '--note' not in args
+
+def test_docker_stage_maps_a_relative_input_path(tmp_path, monkeypatch):
+    ret = fake_docker(tmp_path, monkeypatch, input_path='./input/*.*')
+    assert ret.returncode == 0, ret.stdout + ret.stderr
+    args = (tmp_path / 'args.txt').read_text().splitlines()
+    assert args[args.index('--input') + 1] == '/pcd_pl/input/sample.pcd'
 
 def test_failed_docker_run_stops_pipeline(tmp_path, monkeypatch):
     ret = fake_docker(tmp_path, monkeypatch, exit_code=3)

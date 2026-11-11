@@ -37,7 +37,10 @@ class pipeline_stage:
         
         map1 = split[0]
         map2 = split[1]
-        
+
+        # the container has another working directory, so relative paths are made absolute first
+        trailing = '/' if path.endswith('/') else ''
+        path = os.path.abspath(path) + trailing
         mapped_path = path.replace(map1, map2)
         return mapped_path
 
