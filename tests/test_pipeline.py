@@ -1,4 +1,4 @@
-import os, sys, subprocess
+import os, sys, shutil, subprocess
 from conftest import ROOT, write_json
 
 STAGE_CODE = '''import sys, argparse
@@ -109,18 +109,33 @@ def test_config_paths_resolve_from_repository_root(tmp_path):
     assert conf.lib_path == ROOT + '/lib/'
     assert conf.root_path == ROOT + '/pipeline/'
 
-def test_docker_stage_maps_paths_into_the_container(tmp_path):
-    # stands in for docker/docker_ml_gpu.sh: records the command the container would get.
-    # bin_path is the repository root, which holds input/ and output/ and is mounted at /pcd_pl
+def fake_docker(tmp_path, monkeypatch, exit_code=0):
+    # runs the real docker/docker_ml_gpu.sh with a docker stand-in on PATH that records its arguments.
+    # bin_path is the folder that holds docker/, input/ and output/, mounted at /pcd_pl
     os.makedirs(tmp_path / 'docker')
-    (tmp_path / 'docker' / 'fake_docker.sh').write_text('echo "$@" > "$(dirname "$0")/args.txt"\n')
+    shutil.copy(os.path.join(ROOT, 'docker', 'docker_ml_gpu.sh'), tmp_path / 'docker')
+    os.makedirs(tmp_path / 'fake_bin')
+    docker = tmp_path / 'fake_bin' / 'docker'
+    docker.write_text('#!/bin/sh\nprintf "%%s\\n" "$@" > "%s/args.txt"\nexit %d\n' % (tmp_path, exit_code))
+    docker.chmod(0o755)
+    monkeypatch.setenv('PATH', str(tmp_path / 'fake_bin') + os.pathsep + os.environ['PATH'])
     stage = {'type': 'pcd_to_seg_ml', 'remote_io_root': '$bin_path:/pcd_pl/',
-             'cmd': 'bash $bin_path/docker/fake_docker.sh open3d_gpu python /pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py',
+             'cmd': 'bash $bin_path/docker/docker_ml_gpu.sh open3d_gpu python /pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py',
              'note': 'not forwarded'}
-    ret = run_app(tmp_path, [stage], bin_path=str(tmp_path) + '/')
+    return run_app(tmp_path, [stage], bin_path=str(tmp_path) + '/')
+
+def test_docker_stage_maps_paths_into_the_container(tmp_path, monkeypatch):
+    ret = fake_docker(tmp_path, monkeypatch)
     assert ret.returncode == 0, ret.stdout + ret.stderr
-    args = (tmp_path / 'docker' / 'args.txt').read_text().split()
-    assert args[:3] == ['open3d_gpu', 'python', '/pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py']
+    args = (tmp_path / 'args.txt').read_text().splitlines()
+    mount = os.path.realpath(tmp_path) + '/docker/..:/pcd_pl'
+    assert args[:6] == ['run', '--rm', '-v', mount, '--gpus', 'all']
+    assert '-it' not in args     # no terminal under the pipeline
+    assert args[6:9] == ['open3d_gpu', 'python', '/pcd_pl/pcd_to_seg_ml/pcd_to_seg_ml.py']
     assert args[args.index('--input') + 1] == '/pcd_pl/input/sample.pcd'
     assert args[args.index('--output') + 1] == '/pcd_pl/output/sample/pcd_to_seg_ml/pcd_to_seg_ml'
     assert '--note' not in args
+
+def test_failed_docker_run_stops_pipeline(tmp_path, monkeypatch):
+    ret = fake_docker(tmp_path, monkeypatch, exit_code=3)
+    assert 'pcd_to_seg_ml failed with exit code 3' in ret.stdout
